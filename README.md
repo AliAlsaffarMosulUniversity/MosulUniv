@@ -40,3 +40,12 @@
 - بعد أي تعديل: غيّر رقم VERSION في sw.js حتى تصل التحديثات للهواتف.
 
 تصميم وتطوير: م.م. علي عبد الوهاب يحيى الصفار — كلية الإدارة والاقتصاد، جامعة الموصل
+
+## عدّاد الزيارات
+
+1. أنشئ حساباً مجانياً في https://www.goatcounter.com/signup
+2. في خانة Code اكتب: mosuluniv
+3. بعد الدخول: Settings ثم فعّل "Allow adding visitor counts on your website" ثم Save.
+4. إذا اخترت رمزاً آخر، عدّل GOATCOUNTER_CODE في data.js.
+5. الإحصاءات الكاملة (الدول، الأيام، الأقسام الأكثر فتحاً) تجدها في:
+   https://mosuluniv.goatcounter.com

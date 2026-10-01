@@ -188,3 +188,38 @@ const EN = {
   president: 'Prof. Dr. Waheed Mahmood Al-Ibrahimi',
   address: 'Main Cultural Complex Street, Mosul – Iraq',
 };
+
+/* أخبار الموقع الإنجليزي — تُعرض في قسم الأخبار عند اختيار English */
+const EN_SITE = SITE + 'en/';
+const EN_SNAPSHOT = [
+  { date: '2026-09-22T12:00:00', title: 'A Nation’s Flag… A New Academic Year Begins at the University of Mosul',
+    link: EN_SITE + 'blog/2026/09/22/a-nations-flag-a-new-academic-year-begins-at-the-university-of-mosul/',
+    img: EN_SITE + 'wp-content/uploads/2026/09/WhatsApp-Image-2026-09-20-at-2.01.12-PM-2-1200x675-1.jpeg' },
+  { date: '2026-09-22T11:00:00', title: 'University of Mosul to Host Hajj Selection Lottery for Nineveh Governorate',
+    link: EN_SITE + 'blog/2026/09/22/university-of-mosul-to-host-hajj-selection-lottery-for-nineveh-governorate/',
+    img: EN_SITE + 'wp-content/uploads/2026/09/WhatsApp-Image-2026-09-20-at-1.57.12-PM-2-1200x800-1.jpeg' },
+  { date: '2026-09-22T10:00:00', title: 'Nineveh’s Climate Under the Microscope… A University of Mosul Study Enhances Drought Assessment Accuracy',
+    link: EN_SITE + 'blog/2026/09/22/ninevehs-climate-under-the-microscope-a-university-of-mosul-study-enhances-drought-assessment-accuracy/', img: '' },
+  { date: '2026-09-22T09:00:00', title: 'University of Mosul Organizes Workshop to Enhance Institutional Performance Quality and Establish a Culture of Excellence',
+    link: EN_SITE + 'blog/2026/09/22/university-of-mosul-organizes-workshop-to-enhance-institutional-performance-quality-and-establish-a-culture-of-excellence/',
+    img: EN_SITE + 'wp-content/uploads/2026/09/%D8%AA%D8%B5%D9%85%D9%8A%D9%85-%D8%A8%D8%AF%D9%88%D9%86-%D8%B9%D9%86%D9%88%D8%A7%D9%86-1-1200x800-1.jpg' },
+  { date: '2026-09-22T08:00:00', title: 'From Planning to Implementation… Solar Energy Project at the University of Mosul Enters a Crucial Phase',
+    link: EN_SITE + 'blog/2026/09/22/from-planning-to-implementation-solar-energy-project-at-the-university-of-mosul-enters-a-crucial-phase/',
+    img: EN_SITE + 'wp-content/uploads/2026/09/WhatsApp-Image-2026-09-06-at-1.32.29-PM-1200x800-2.jpeg' },
+];
+
+/* كلمات تصنيف العناوين الإنجليزية */
+const TYPE_WORDS_EN = {
+  council: ['council', 'meeting', 'receives', 'visit', 'delegation', 'hosts'],
+  defense: ['thesis', 'dissertation', 'defense', 'defence'],
+  workshop: ['workshop'], seminar: ['seminar', 'symposium', 'panel'],
+  course: ['course', 'training'], conf: ['conference', 'forum'], lecture: ['lecture'],
+  agreement: ['agreement', 'memorandum', 'partnership', 'cooperation'],
+  campaign: ['campaign', 'initiative', 'volunteer'], event: ['ceremony', 'celebrat', 'honors', 'festival', 'exhibition', 'graduation'],
+  notice: ['announce', 'notice'],
+};
+
+/* عدّاد الزيارات — GoatCounter (مجاني، بلا ملفات تعريف ارتباط)
+   اكتب هنا الرمز الذي اخترته عند إنشاء الحساب، مثلاً: 'mosuluniv'
+   اتركه فارغاً لإيقاف العدّاد */
+const GOATCOUNTER_CODE = 'mosuluniv';

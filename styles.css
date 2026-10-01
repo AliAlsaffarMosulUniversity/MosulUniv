@@ -357,7 +357,7 @@ html.is-dark .hero-title { color: #f1ead8; }
 html[lang="en"] .hero-title { font-size: 2.3rem; }
 @media (min-width: 980px) { .hero { padding: 14px 2px 24px; } .hero-title { font-size: 2.8rem; } .hero-sub { font-size: 1rem; } }
 .dedication .to { font-family: var(--font-display); font-size: 1.5rem; opacity: 1; margin: 4px 0 10px; color: #f4f1e8; }
-.dedication p { max-width: 44ch; margin-inline: auto; }
+.dedication p { max-width: min(560px, 100%); margin-inline: auto; }
 
 /* ترويسة مضغوطة على الهاتف */
 .top-row { gap: 8px; }
@@ -375,3 +375,16 @@ html[lang="en"] .hero-title { font-size: 2.3rem; }
 .rank .fill, .rank .track { display: block; }
 @media (min-width: 980px) { .hero-sub { max-width: 70ch; } }
 .rank .nm { white-space: normal; line-height: 1.4; }
+@media (min-width: 980px) {
+  #seg-week { order: 1; } #seg-kind { order: 2; } #unit-picker { order: 3; } #seg-group { order: 4; }
+  #type-chips { order: 5; flex-wrap: wrap; } #search { order: 6; }
+}
+
+/* عدّاد الزيارات */
+.visits { display: flex; align-items: center; gap: 14px; margin-top: 26px; padding: 16px 18px; background: var(--card); border: 1px solid var(--vein); border-radius: var(--radius-lg); }
+.visits[hidden] { display: none; }
+.visits svg { width: 34px; height: 34px; color: var(--brass); flex: none; }
+.visits .vt { font-size: .85rem; color: var(--muted); }
+.visits b { font-family: var(--font-display); font-size: 2rem; line-height: 1.1; color: var(--ink-2); }
+html.is-dark .visits b { color: var(--brass); }
+.visits span { font-size: .85rem; color: var(--muted); }

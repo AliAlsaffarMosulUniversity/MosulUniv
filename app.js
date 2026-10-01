@@ -6,6 +6,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const DAY = 86400000;
 const CACHE_KEY = 'uom-cache-v1';
+const EN_CACHE_KEY = 'uom-en-news-v1';
 const THEME_KEY = 'uom-theme2';
 const LANG_KEY = 'uom-lang';
 const CONCURRENCY = 6;
@@ -22,7 +23,7 @@ const store = {
 };
 
 const state = {
-  items: [], source: 'snapshot', ref: new Date(), loading: false, failed: 0,
+  items: [], enNews: [], enLoading: false, source: 'snapshot', ref: new Date(), loading: false, failed: 0,
   week: 0, kind: 'all', unit: 'all', type: 'all', q: '', group: 'day', day: null,
   lang: store.get(LANG_KEY) === 'en' ? 'en' : 'ar',
 };
@@ -65,6 +66,7 @@ const STR = {
     source: 'البيانات مأخوذة من الموقع الرسمي لجامعة الموصل',
     rTitle: 'التقرير الأسبوعي للنشاطات', rTotal: 'نشاطاً وخبراً', rUnits: 'جهة نشطة من أصل {n}',
     rTop: 'الأكثر نشاطاً', rTypes: 'حسب النوع', rFoot: 'من تطبيق نبض جامعة الموصل',
+    visitsTitle: 'زوار التطبيق', visitsCap: 'زيارة منذ إطلاق التطبيق', visitsNA: 'يظهر العدد عند توفر الإنترنت',
   },
   en: {
     appName: 'University of Mosul', refresh: 'Refresh data',
@@ -102,6 +104,7 @@ const STR = {
     source: 'Data from the official website of the University of Mosul',
     rTitle: 'Weekly activity report', rTotal: 'activities and news', rUnits: 'active units out of {n}',
     rTop: 'Most active', rTypes: 'By type', rFoot: 'From The Pulse of the University of Mosul app',
+    visitsTitle: 'App visitors', visitsCap: 'visits since launch', visitsNA: 'The count appears when you are online',
   },
 };
 const t = (k, v = {}) => (STR[state.lang][k] ?? STR.ar[k] ?? k).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');
@@ -130,6 +133,11 @@ const dayKey = d => { const x = new Date(d); return `${x.getFullYear()}-${x.getM
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 function classify(title) {
+  if (!/[\u0600-\u06FF]/.test(title)) {
+    const low = title.toLowerCase();
+    for (const ty of TYPES) if ((TYPE_WORDS_EN[ty.id] || []).some(w => low.includes(w))) return ty.id;
+    return 'other';
+  }
   const tt = norm(title);
   for (const ty of TYPES) if (ty.words.some(w => tt.includes(norm(w)))) return ty.id;
   return 'other';
@@ -158,11 +166,18 @@ async function fetchJSON(url) {
 }
 
 async function fetchUnit(unit, afterISO) {
-  const url = unit.base + 'wp-json/wp/v2/posts?per_page=50&orderby=date&order=desc'
-    + '&after=' + encodeURIComponent(afterISO)
-    + '&_embed=wp:featuredmedia&_fields=id,date,link,title,_links,_embedded';
-  const posts = await fetchJSON(url);
-  if (!Array.isArray(posts)) throw new Error('bad payload');
+  const PER = 100, MAX_PAGES = 4;
+  const posts = [];
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const url = unit.base + `wp-json/wp/v2/posts?per_page=${PER}&page=${page}&orderby=date&order=desc`
+      + '&after=' + encodeURIComponent(afterISO)
+      + '&_embed=wp:featuredmedia&_fields=id,date,link,title,_links,_embedded';
+    let batch;
+    try { batch = await fetchJSON(url); } catch (e) { if (page === 1) throw e; break; }
+    if (!Array.isArray(batch)) { if (page === 1) throw new Error('bad payload'); break; }
+    posts.push(...batch);
+    if (batch.length < PER) break;
+  }
   return posts.map(p => {
     const m = p._embedded && p._embedded['wp:featuredmedia'] && p._embedded['wp:featuredmedia'][0];
     const sizes = m && m.media_details && m.media_details.sizes;
@@ -214,7 +229,36 @@ function loadSnapshot() {
   state.source = 'snapshot'; state.ref = new Date(SNAPSHOT_DATE);
 }
 
+/* أخبار الموقع الإنجليزي: آخر ثمانية أخبار بغض النظر عن تاريخها */
+function loadEnCache() {
+  try {
+    const c = JSON.parse(store.get(EN_CACHE_KEY) || 'null');
+    state.enNews = (c && Array.isArray(c.items) && c.items.length ? c.items : EN_SNAPSHOT).map(makeItem);
+  } catch (e) { state.enNews = EN_SNAPSHOT.map(makeItem); }
+}
+async function loadEnNews() {
+  if (state.enLoading) return;
+  state.enLoading = true;
+  try {
+    const url = EN_SITE + 'wp-json/wp/v2/posts?per_page=8&orderby=date&order=desc&_embed=wp:featuredmedia&_fields=id,date,link,title,_links,_embedded';
+    const posts = await fetchJSON(url);
+    if (Array.isArray(posts) && posts.length) {
+      const items = posts.map(p => {
+        const m = p._embedded && p._embedded['wp:featuredmedia'] && p._embedded['wp:featuredmedia'][0];
+        const sizes = m && m.media_details && m.media_details.sizes;
+        return { title: decode(p.title && p.title.rendered), date: p.date, link: p.link, unit: 'uom', src: 'en',
+          img: (sizes && (sizes.medium || sizes.thumbnail || {}).source_url) || (m && m.source_url) || '' };
+      });
+      state.enNews = items.map(makeItem);
+      store.set(EN_CACHE_KEY, JSON.stringify({ ts: Date.now(), items }));
+    }
+  } catch (e) { /* تبقى النسخة المحفوظة */ }
+  state.enLoading = false;
+  if (state.lang === 'en') renderHome();
+}
+
 async function refresh(user) {
+  if (state.lang === 'en') loadEnNews();
   if (state.loading) return;
   const live = await loadLive();
   if (!live) {
@@ -253,7 +297,7 @@ function itemHTML(i, showUnit = true) {
   const img = i.img ? `<img class="thumb" src="${esc(i.img)}" alt="" loading="lazy" onerror="this.parentNode.classList.add('noimg');this.remove()">` : '';
   return `<a class="item ${i.img ? '' : 'noimg'}" style="--tc:var(--t-${ty.id})" href="${esc(i.link)}" target="_blank" rel="noopener">
     <div>
-      <h3 lang="ar" dir="auto">${esc(i.title)}</h3>
+      <h3 lang="${/[\u0600-\u06FF]/.test(i.title) ? 'ar' : 'en'}" dir="auto">${esc(i.title)}</h3>
       <div class="meta"><span class="tag">${esc(tname(ty))}</span>${showUnit ? `<span>${esc(uname(u))}</span>` : ''}<span>${esc(fmtShort.format(i.date))}</span></div>
     </div>${img}</a>`;
 }
@@ -317,7 +361,9 @@ function renderHome() {
   $('#legend').innerHTML = S.types.map(({ ty, n }) =>
     `<button data-legend="${ty.id}"><i style="background:var(--t-${ty.id})"></i>${esc(tname(ty))} <b>${fmtNum.format(n)}</b></button>`).join('');
 
-  const news = state.items.filter(i => i.src === 'hq').sort((a, b) => b.date - a.date).slice(0, 8);
+  const news = (state.lang === 'en' && state.enNews.length ? state.enNews : state.items.filter(i => i.src === 'hq'))
+    .slice().sort((a, b) => b.date - a.date).slice(0, 8);
+  const nl = $('#news-link'); if (nl) nl.href = state.lang === 'en' ? EN_SITE + 'news/' : 'https://uomosul.edu.iq/more-news/';
   $('#news').innerHTML = news.length ? news.map(i => itemHTML(i, false)).join('') : emptyHTML(t('noNews'), t('noNewsHint'));
   $('#report').disabled = !S.week.length;
 }
@@ -430,6 +476,10 @@ function renderAbout() {
     </div>
     <h2>${esc(t('follow'))}</h2>
     <div class="rows">${A.social.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener"><span>${esc(state.lang === 'en' ? s.url.split('/')[2].replace('www.', '') : s.name)}</span><span>${arrow}</span></a>`).join('')}</div>
+    <div class="visits" ${GOATCOUNTER_CODE ? '' : 'hidden'}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+      <div><div class="vt">${esc(t('visitsTitle'))}</div><b id="visits-n">—</b> <span id="visits-cap">${esc(t('visitsNA'))}</span></div>
+    </div>
     <div class="dedication">
       <div class="h">${esc(t('dedTitle'))}</div>
       <p class="to">${esc(t('ded1'))}</p>
@@ -441,7 +491,7 @@ function renderAbout() {
 }
 
 function renderAll() { renderBanner(); renderHome(); renderActivities(); renderUnits(); }
-function renderEverything() { setFormatters(); renderStatic(); renderUnitPicker(); renderServices(); renderAbout(); renderAll(); }
+function renderEverything() { setFormatters(); renderStatic(); renderUnitPicker(); renderServices(); renderAbout(); renderAll(); if (visitsCache) loadVisits(); }
 
 /* ---------- نافذة الجهة ---------- */
 function openUnit(id) {
@@ -527,7 +577,7 @@ async function makeReport() {
     x.textAlign = align; x.fillStyle = INK; x.font = `700 36px ${body}`; x.fillText(t('rTop'), start, y);
     const top = S.rank.slice(0, 5), tmax = top.length ? top[0][1] : 1;
     top.forEach(([id, n], k) => {
-      const yy = y + 60 + k * 78;
+      const yy = y + 56 + k * 74;
       x.fillStyle = k === 0 ? BRASS : VEIN;
       x.beginPath(); x.arc(en ? P + 22 : W - P - 22, yy - 10, 22, 0, Math.PI * 2); x.fill();
       x.fillStyle = k === 0 ? '#fff' : MUTED; x.textAlign = 'center'; x.font = `700 24px ${body}`;
@@ -542,7 +592,7 @@ async function makeReport() {
     });
 
     // حسب النوع
-    y = 1030;
+    y = 1050;
     x.textAlign = align; x.fillStyle = INK; x.font = `700 36px ${body}`; x.fillText(t('rTypes'), start, y);
     const tot = S.week.length || 1;
     let cx = en ? P : W - P;
@@ -550,14 +600,14 @@ async function makeReport() {
     S.types.forEach(({ ty, n }) => {
       const w = bwAll * n / tot;
       x.fillStyle = cssVar('--t-' + ty.id) || '#888';
-      if (en) { x.fillRect(cx, y + 30, Math.max(w - 3, 2), 26); cx += w; } else { x.fillRect(cx - w + 3, y + 30, Math.max(w - 3, 2), 26); cx -= w; }
+      if (en) { x.fillRect(cx, y + 24, Math.max(w - 3, 2), 22); cx += w; } else { x.fillRect(cx - w + 3, y + 24, Math.max(w - 3, 2), 22); cx -= w; }
     });
-    let lx = en ? P : W - P, ly = y + 110;
+    let lx = en ? P : W - P, ly = y + 92;
     x.font = `400 26px ${body}`;
-    S.types.slice(0, 8).forEach(({ ty, n }) => {
+    S.types.slice(0, 10).forEach(({ ty, n }) => {
       const label = `${tname(ty)} ${fmtNum.format(n)}`;
       const w = x.measureText(label).width + 50;
-      if ((en && lx + w > W - P) || (!en && lx - w < P)) { lx = en ? P : W - P; ly += 46; }
+      if ((en && lx + w > W - P) || (!en && lx - w < P)) { lx = en ? P : W - P; ly += 44; }
       x.fillStyle = cssVar('--t-' + ty.id) || '#888';
       x.beginPath(); x.arc(en ? lx + 9 : lx - 9, ly - 9, 9, 0, Math.PI * 2); x.fill();
       x.fillStyle = TEXT; x.textAlign = align; x.fillText(label, en ? lx + 26 : lx - 26, ly);
@@ -567,7 +617,9 @@ async function makeReport() {
     // التذييل
     x.fillStyle = INK; x.fillRect(0, H - 90, W, 90);
     x.fillStyle = 'rgba(244,241,232,.85)'; x.font = `400 24px ${body}`; x.textAlign = 'center';
-    x.fillText(`${t('rFoot')} · ${APP_URL}`, W / 2, H - 38);
+    let foot = `${t('rFoot')} · ${APP_URL}`;
+    if (x.measureText(foot).width > W - 2 * P) foot = APP_URL;
+    x.fillText(foot, W / 2, H - 38);
 
     const blob = await new Promise(res => c.toBlob(res, 'image/png'));
     const file = new File([blob], `mosul-weekly-${dayKey(new Date())}.png`, { type: 'image/png' });
@@ -581,11 +633,38 @@ async function makeReport() {
   } finally { btn.disabled = false; }
 }
 
+/* ---------- عدّاد الزيارات ---------- */
+const GC = GOATCOUNTER_CODE ? `https://${GOATCOUNTER_CODE}.goatcounter.com` : '';
+function initCounter() {
+  if (!GC || !location.protocol.startsWith('http') || location.hostname === 'localhost') return;
+  window.goatcounter = { path: p => location.host + p };
+  const sc = document.createElement('script');
+  sc.async = true; sc.src = 'https://gc.zgo.at/count.js'; sc.dataset.goatcounter = GC + '/count';
+  document.head.appendChild(sc);
+}
+function countEvent(name) {
+  try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: 'tab-' + name, title: name, event: true }); } catch (e) {}
+}
+let visitsCache = null;
+async function loadVisits() {
+  if (!GC) return;
+  try {
+    if (!visitsCache) { const r = await fetchJSON(GC + '/counter/TOTAL.json'); visitsCache = r && r.count; }
+    if (visitsCache) {
+      const n = parseInt(String(visitsCache).replace(/[^\d]/g, ''), 10);
+      const el = $('#visits-n'); if (el) el.textContent = isNaN(n) ? visitsCache : fmtNum.format(n);
+      const cap = $('#visits-cap'); if (cap) cap.textContent = t('visitsCap');
+    }
+  } catch (e) { /* يبقى النص الافتراضي */ }
+}
+
 /* ---------- التنقل والأحداث ---------- */
 function go(tab) {
   $$('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   $$('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + tab));
   closeSheet(); window.scrollTo({ top: 0 });
+  countEvent(tab);
+  if (tab === 'about') loadVisits();
 }
 const setSeg = (id, attr, val) => $$(`#${id} button`).forEach(b => b.classList.toggle('on', b.dataset[attr] === String(val)));
 function resetActs(over) {
@@ -615,9 +694,9 @@ function bind() {
   $('#sheet-bg').addEventListener('click', closeSheet);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
   $('#refresh').addEventListener('click', () => refresh(true));
-  $('#report').addEventListener('click', makeReport);
+  $('#report').addEventListener('click', () => { countEvent('report'); makeReport(); });
   $('#theme').addEventListener('click', () => { store.set(THEME_KEY, isDark() ? 'light' : 'dark'); applyTheme(); });
-  $('#lang').addEventListener('click', () => { state.lang = state.lang === 'en' ? 'ar' : 'en'; store.set(LANG_KEY, state.lang); renderEverything(); });
+  $('#lang').addEventListener('click', () => { state.lang = state.lang === 'en' ? 'ar' : 'en'; store.set(LANG_KEY, state.lang); renderEverything(); if (state.lang === 'en') loadEnNews(); });
   $('#unit-picker').addEventListener('change', e => { state.unit = e.target.value; if (state.unit !== 'all' && state.kind === 'hq') { state.kind = 'all'; setSeg('seg-kind', 'kind', 'all'); } renderActivities(); });
   let st; $('#search').addEventListener('input', e => { clearTimeout(st); st = setTimeout(() => { state.q = e.target.value; renderActivities(); }, 150); });
   $('#unit-search').addEventListener('input', renderUnits);
@@ -627,7 +706,8 @@ function bind() {
 function init() {
   applyTheme();
   if (!loadCache()) loadSnapshot();
-  renderEverything(); bind();
+  loadEnCache();
+  renderEverything(); bind(); initCounter();
   refresh(false);
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
