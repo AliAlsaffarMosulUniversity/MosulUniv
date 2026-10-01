@@ -1,5 +1,5 @@
 /* Service worker — يحفظ واجهة التطبيق للعمل بدون إنترنت */
-const VERSION = 'uom-v6';
+const VERSION = 'uom-v7';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'data.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
