@@ -6,22 +6,119 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const DAY = 86400000;
 const CACHE_KEY = 'uom-cache-v1';
-const THEME_KEY = 'uom-theme';
+const THEME_KEY = 'uom-theme2';
+const LANG_KEY = 'uom-lang';
 const CONCURRENCY = 6;
 const TIMEOUT = 15000;
+const APP_URL = 'alialsaffarmosuluniversity.github.io/MosulUniv';
 
 const ALL_UNITS = [HQ, ...UNITS];
 const unitById = Object.fromEntries(ALL_UNITS.map(u => [u.id, u]));
 const groupById = Object.fromEntries(GROUPS.map(g => [g.id, g]));
-const typeById = Object.fromEntries([...TYPES, TYPE_OTHER].map(t => [t.id, t]));
+const ALL_TYPES = [...TYPES, TYPE_OTHER];
+const store = {
+  get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} },
+};
 
 const state = {
-  items: [],          // {title, date(Date), link, img, unit, src:'hq'|'unit', type}
-  source: 'snapshot', // live | cache | snapshot
-  ref: new Date(),
-  loading: false,
+  items: [], source: 'snapshot', ref: new Date(), loading: false, failed: 0,
   week: 0, kind: 'all', unit: 'all', type: 'all', q: '', group: 'day', day: null,
+  lang: store.get(LANG_KEY) === 'en' ? 'en' : 'ar',
 };
+
+/* ---------- النصوص بلغتين ---------- */
+const STR = {
+  ar: {
+    appName: 'جامعة الموصل', refresh: 'تحديث البيانات',
+    heroTitle: 'نبض جامعة الموصل', heroSub: 'متابعة أسبوعية لنشاطات الكليات والمراكز، مباشرة من الموقع الرسمي للجامعة',
+    pulseCap: 'نشاطاً وخبراً خلال آخر سبعة أيام', unitsCap: 'جهة نشطة من أصل {n}', shareReport: 'مشاركة التقرير الأسبوعي',
+    topTitle: 'الأكثر نشاطاً هذا الأسبوع', allUnits: 'كل الجهات', typesTitle: 'النشاطات حسب النوع',
+    quickTitle: 'خدمات سريعة', allServices: 'كل الخدمات', newsTitle: 'آخر أخبار الجامعة', officialSite: 'الموقع الرسمي',
+    thisWeek: 'هذا الأسبوع', lastWeek: 'الأسبوع الماضي', kindUnits: 'الكليات والمراكز', kindHQ: 'رئاسة الجامعة',
+    searchActs: 'ابحث في عناوين النشاطات', byDay: 'حسب اليوم', byUnit: 'حسب الجهة', searchUnits: 'ابحث عن كلية أو مركز',
+    eSystems: 'الأنظمة الإلكترونية', tabHome: 'الرئيسية', tabActs: 'النشاطات', tabUnits: 'الكليات', tabServices: 'الخدمات', tabAbout: 'عن الجامعة',
+    allPicker: 'كل الكليات والمراكز', all: 'الكل', loadingN: 'جارٍ جلب النشاطات… {d} من {n} جهة',
+    noNews: 'لا توجد أخبار لعرضها', noNewsHint: 'اضغط زر التحديث في الأعلى عند توفر الإنترنت.',
+    noActs: 'لا توجد نشاطات مطابقة', noActsHint: 'جرّب أسبوعاً آخر أو أزل بعض عوامل التصفية.',
+    noRank: 'لا توجد نشاطات منشورة بعد هذا الأسبوع.',
+    dayOnly: 'نشاطات يوم {d} فقط.', showWeek: 'عرض الأسبوع كاملاً',
+    noUnit: 'لا توجد جهة بهذا الاسم', noUnitHint: 'تأكد من كتابة الاسم بشكل صحيح.', weekCount: 'نشاطات هذا الأسبوع',
+    website: 'الموقع الإلكتروني', allActs: 'كل نشاطاتها', close: 'إغلاق', thisWeekN: 'هذا الأسبوع — {n}',
+    unitEmpty: 'لا توجد نشاطات منشورة هذا الأسبوع', unitEmptyHint: 'قد تنشر الجهة أخبارها لاحقاً على موقعها.',
+    bFailed: 'تعذّر الوصول إلى {n} من مواقع الكليات والمراكز، لذلك قد تنقص بعض النشاطات.',
+    bCache: 'لا يوجد اتصال بموقع الجامعة. تُعرض بيانات محفوظة من {d}.',
+    bSnap: 'تُعرض نسخة محفوظة من {d}. اضغط زر التحديث في الأعلى عند توفر الإنترنت.',
+    tOk: 'تم تحديث النشاطات', tFail: 'تعذّر الاتصال بموقع الجامعة. تُعرض آخر بيانات محفوظة.',
+    tSaved: 'تم حفظ صورة التقرير', tMaking: 'جارٍ إعداد التقرير…',
+    darkOn: 'الوضع الداكن', lightOn: 'الوضع الفاتح',
+    readWord: 'قراءة كلمة السيد رئيس الجامعة', presTitle: 'رئيس جامعة الموصل', about: 'نبذة',
+    about1: 'تأسست جامعة الموصل عام {y}، وهي من أكبر الجامعات العراقية وأعرقها.',
+    about2: 'تضم اليوم {n} كلية، إلى جانب مراكز بحثية وخدمية، ومكتبة مركزية أُعيد إعمارها، ومسرحاً كبيراً يخدم المدينة.',
+    links: 'روابط مهمة', calendar: 'التقويم الجامعي 2026–2027', contact: 'اتصل بنا', address: 'العنوان', postal: 'الرمز البريدي', follow: 'تابعونا',
+    dedTitle: 'إهداء',
+    ded1: 'إلى جامعة الموصل',
+    ded2: 'صرح العلم والمعرفة منذ عام ١٩٦٧، وإلى أساتذتها وطلبتها ومنتسبيها،',
+    ded3: 'أهدي هذا التطبيق ليكون نافذةً يوميةً على نشاطات كلياتها ومراكزها.',
+    dedBy: 'تصميم وتطوير: م.م. علي عبد الوهاب يحيى الصفار',
+    dedCollege: 'كلية الإدارة والاقتصاد — جامعة الموصل',
+    source: 'البيانات مأخوذة من الموقع الرسمي لجامعة الموصل',
+    rTitle: 'التقرير الأسبوعي للنشاطات', rTotal: 'نشاطاً وخبراً', rUnits: 'جهة نشطة من أصل {n}',
+    rTop: 'الأكثر نشاطاً', rTypes: 'حسب النوع', rFoot: 'من تطبيق نبض جامعة الموصل',
+  },
+  en: {
+    appName: 'University of Mosul', refresh: 'Refresh data',
+    heroTitle: 'The Pulse of the University of Mosul', heroSub: 'A weekly view of college and center activities, straight from the university’s official website',
+    pulseCap: 'activities and news in the last 7 days', unitsCap: 'active units out of {n}', shareReport: 'Share weekly report',
+    topTitle: 'Most active this week', allUnits: 'All units', typesTitle: 'Activities by type',
+    quickTitle: 'Quick services', allServices: 'All services', newsTitle: 'Latest university news', officialSite: 'Official site',
+    thisWeek: 'This week', lastWeek: 'Last week', kindUnits: 'Colleges & centers', kindHQ: 'Presidency',
+    searchActs: 'Search activity titles', byDay: 'By day', byUnit: 'By unit', searchUnits: 'Search for a college or center',
+    eSystems: 'Electronic systems', tabHome: 'Home', tabActs: 'Activities', tabUnits: 'Colleges', tabServices: 'Services', tabAbout: 'About',
+    allPicker: 'All colleges and centers', all: 'All', loadingN: 'Fetching activities… {d} of {n} units',
+    noNews: 'No news to show', noNewsHint: 'Tap refresh at the top when you are online.',
+    noActs: 'No matching activities', noActsHint: 'Try another week or remove some filters.',
+    noRank: 'No activities published yet this week.',
+    dayOnly: 'Showing {d} only.', showWeek: 'Show the whole week',
+    noUnit: 'No unit with this name', noUnitHint: 'Check the spelling and try again.', weekCount: 'Activities this week',
+    website: 'Website', allActs: 'All activities', close: 'Close', thisWeekN: 'This week — {n}',
+    unitEmpty: 'No activities published this week', unitEmptyHint: 'The unit may post its news later on its website.',
+    bFailed: '{n} college and center websites could not be reached, so some activities may be missing.',
+    bCache: 'No connection to the university website. Showing saved data from {d}.',
+    bSnap: 'Showing a saved copy from {d}. Tap refresh at the top when you are online.',
+    tOk: 'Activities updated', tFail: 'Could not reach the university website. Showing the last saved data.',
+    tSaved: 'Report image saved', tMaking: 'Preparing the report…',
+    darkOn: 'Dark mode', lightOn: 'Light mode',
+    readWord: 'Read the President’s message', presTitle: 'President of the University of Mosul', about: 'Overview',
+    about1: 'The University of Mosul was founded in {y} and is one of Iraq’s largest and oldest universities.',
+    about2: 'Today it has {n} colleges, along with research and service centers, a rebuilt central library, and a large theater that serves the city.',
+    links: 'Useful links', calendar: 'Academic calendar 2026–2027', contact: 'Contact us', address: 'Address', postal: 'Postal code', follow: 'Follow us',
+    dedTitle: 'Dedication',
+    ded1: 'To the University of Mosul,',
+    ded2: 'a home of learning since 1967, and to its faculty, students and staff,',
+    ded3: 'I dedicate this app as a daily window onto the activities of its colleges and centers.',
+    dedBy: 'Designed and developed by Asst. Lect. Ali Abdulwahab Yahya Al-Saffar',
+    dedCollege: 'College of Administration and Economics — University of Mosul',
+    source: 'Data from the official website of the University of Mosul',
+    rTitle: 'Weekly activity report', rTotal: 'activities and news', rUnits: 'active units out of {n}',
+    rTop: 'Most active', rTypes: 'By type', rFoot: 'From The Pulse of the University of Mosul app',
+  },
+};
+const t = (k, v = {}) => (STR[state.lang][k] ?? STR.ar[k] ?? k).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');
+const uname = u => state.lang === 'en' ? (u.id === 'uom' ? EN.hq : EN.units[u.id] || u.name) : u.name;
+const gname = g => state.lang === 'en' ? EN.groups[g.id] : g.name;
+const tname = ty => state.lang === 'en' ? EN.types[ty.id] : ty.name;
+
+let fmtDay, fmtShort, fmtWd, fmtNum, fmtFull, fmtRange;
+function setFormatters() {
+  const loc = state.lang === 'en' ? 'en-GB' : 'ar-IQ';
+  fmtDay = new Intl.DateTimeFormat(loc, { weekday: 'long', day: 'numeric', month: 'long' });
+  fmtShort = new Intl.DateTimeFormat(loc, { day: 'numeric', month: 'long' });
+  fmtWd = new Intl.DateTimeFormat(loc, { weekday: 'short' });
+  fmtNum = new Intl.NumberFormat(loc);
+  fmtFull = new Intl.DateTimeFormat(loc, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  fmtRange = new Intl.DateTimeFormat(loc, { day: 'numeric', month: 'long', year: 'numeric' });
+}
 
 /* ---------- أدوات ---------- */
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -30,33 +127,26 @@ const decode = html => { decoder.innerHTML = String(html || '').replace(/<[^>]*>
 const norm = s => s.replace(/[إأآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[ًٌٍَُِّْـ]/g, '');
 const startOfDay = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
 const dayKey = d => { const x = new Date(d); return `${x.getFullYear()}-${x.getMonth() + 1}-${x.getDate()}`; };
-const fmtDay = new Intl.DateTimeFormat('ar-IQ', { weekday: 'long', day: 'numeric', month: 'long' });
-const fmtShort = new Intl.DateTimeFormat('ar-IQ', { day: 'numeric', month: 'long' });
-const fmtWd = new Intl.DateTimeFormat('ar-IQ', { weekday: 'short' });
-const fmtNum = new Intl.NumberFormat('ar-IQ');
-const fmtFull = new Intl.DateTimeFormat('ar-IQ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 function classify(title) {
-  const t = norm(title);
-  for (const ty of TYPES) if (ty.words.some(w => t.includes(norm(w)))) return ty.id;
+  const tt = norm(title);
+  for (const ty of TYPES) if (ty.words.some(w => tt.includes(norm(w)))) return ty.id;
   return 'other';
 }
 function matchUnit(title) {
-  const t = norm(' ' + title + ' ');
-  for (const u of UNITS) if (u.keys.some(k => t.includes(norm(k)))) return u.id;
+  const tt = norm(' ' + title + ' ');
+  for (const u of UNITS) if (u.keys.some(k => tt.includes(norm(k)))) return u.id;
   return 'uom';
 }
-function makeItem(raw) {
-  const date = new Date(raw.date);
-  return { ...raw, date, type: classify(raw.title) };
-}
+const makeItem = raw => ({ ...raw, date: new Date(raw.date), type: classify(raw.title) });
 
 function toast(msg) {
-  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
-  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), 2600);
+  const el = $('#toast'); el.textContent = msg; el.classList.add('on');
+  clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('on'), 2600);
 }
 
-/* ---------- جلب البيانات من موقع الجامعة ---------- */
+/* ---------- جلب البيانات ---------- */
 async function fetchJSON(url) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), TIMEOUT);
@@ -84,13 +174,13 @@ async function fetchUnit(unit, afterISO) {
 }
 
 async function loadLive() {
-  state.loading = true; setRefreshing(true);
+  state.loading = true; $('#refresh').classList.add('spin');
   const after = new Date(Date.now() - 15 * DAY).toISOString();
   const queue = [...ALL_UNITS];
   let done = 0, ok = 0;
   const out = [];
   const prog = $('#p-progress');
-  const tick = () => { prog.textContent = `جارٍ جلب النشاطات… ${fmtNum.format(done)} من ${fmtNum.format(ALL_UNITS.length)} جهة`; };
+  const tick = () => { prog.textContent = t('loadingN', { d: fmtNum.format(done), n: fmtNum.format(ALL_UNITS.length) }); };
   tick();
   async function worker() {
     while (queue.length) {
@@ -101,27 +191,24 @@ async function loadLive() {
   }
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));
   prog.textContent = '';
-  state.loading = false; setRefreshing(false);
-
+  state.loading = false; $('#refresh').classList.remove('spin');
   if (ok === 0) return false;
   const seen = new Set();
   const items = out.filter(i => i.link && !seen.has(i.link) && seen.add(i.link));
   state.items = items.map(makeItem);
-  state.source = 'live'; state.ref = new Date();
-  state.failed = ALL_UNITS.length - ok;
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), items })); } catch (e) {}
+  state.source = 'live'; state.ref = new Date(); state.failed = ALL_UNITS.length - ok;
+  store.set(CACHE_KEY, JSON.stringify({ ts: Date.now(), items }));
   return true;
 }
 
 function loadCache() {
   try {
-    const c = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    const c = JSON.parse(store.get(CACHE_KEY) || 'null');
     if (!c || !Array.isArray(c.items) || !c.items.length) return false;
     state.items = c.items.map(makeItem); state.source = 'cache'; state.ref = new Date(c.ts);
     return true;
   } catch (e) { return false; }
 }
-
 function loadSnapshot() {
   state.items = SNAPSHOT.map(s => makeItem({ ...s, src: s.unit === 'uom' ? 'hq' : 'unit', unit: s.unit === 'uom' ? matchUnit(s.title) : s.unit }));
   state.source = 'snapshot'; state.ref = new Date(SNAPSHOT_DATE);
@@ -132,65 +219,107 @@ async function refresh(user) {
   const live = await loadLive();
   if (!live) {
     if (state.source === 'snapshot' && !loadCache()) loadSnapshot();
-    if (user) toast('تعذّر الاتصال بموقع الجامعة. تُعرض آخر بيانات محفوظة.');
-  } else if (user) toast('تم تحديث النشاطات');
+    if (user) toast(t('tFail'));
+  } else if (user) toast(t('tOk'));
   renderAll();
 }
 
-function setRefreshing(on) { $('#refresh').classList.toggle('spin', on); }
-
-/* ---------- حسابات الأسابيع ---------- */
+/* ---------- الأسابيع والإحصاءات ---------- */
 function weekRange(w) {
   const end = new Date(startOfDay(state.ref).getTime() + DAY - 7 * DAY * w);
   return { start: new Date(end.getTime() - 7 * DAY), end };
 }
-function inWeek(i, w) { const r = weekRange(w); return i.date >= r.start && i.date < r.end; }
+const inWeek = (i, w) => { const r = weekRange(w); return i.date >= r.start && i.date < r.end; };
+
+function weekStats() {
+  const week = state.items.filter(i => inWeek(i, 0));
+  const byUnit = {}, byType = {};
+  week.forEach(i => {
+    if (i.unit !== 'uom') byUnit[i.unit] = (byUnit[i.unit] || 0) + 1;
+    byType[i.type] = (byType[i.type] || 0) + 1;
+  });
+  const rank = Object.entries(byUnit).sort((a, b) => b[1] - a[1]);
+  const types = ALL_TYPES.filter(ty => byType[ty.id]).map(ty => ({ ty, n: byType[ty.id] })).sort((a, b) => b.n - a.n);
+  const { start } = weekRange(0);
+  const days = Array.from({ length: 7 }, (_, k) => new Date(start.getTime() + k * DAY));
+  const counts = days.map(d => week.filter(i => dayKey(i.date) === dayKey(d)).length);
+  return { week, rank, types, days, counts };
+}
 
 /* ---------- العرض ---------- */
 function itemHTML(i, showUnit = true) {
-  const ty = typeById[i.type] || TYPE_OTHER;
+  const ty = ALL_TYPES.find(x => x.id === i.type) || TYPE_OTHER;
   const u = unitById[i.unit] || HQ;
-  const img = i.img ? `<img class="thumb" src="${esc(i.img)}" alt="" loading="lazy" onerror="this.remove();this.parentNode&&this.parentNode.classList.add('noimg')">` : '';
+  const img = i.img ? `<img class="thumb" src="${esc(i.img)}" alt="" loading="lazy" onerror="this.parentNode.classList.add('noimg');this.remove()">` : '';
   return `<a class="item ${i.img ? '' : 'noimg'}" style="--tc:var(--t-${ty.id})" href="${esc(i.link)}" target="_blank" rel="noopener">
     <div>
-      <h3>${esc(i.title)}</h3>
-      <div class="meta"><span class="tag">${esc(ty.name)}</span>${showUnit ? `<span>${esc(u.name)}</span>` : ''}<span>${esc(fmtShort.format(i.date))}</span></div>
+      <h3 lang="ar" dir="auto">${esc(i.title)}</h3>
+      <div class="meta"><span class="tag">${esc(tname(ty))}</span>${showUnit ? `<span>${esc(uname(u))}</span>` : ''}<span>${esc(fmtShort.format(i.date))}</span></div>
     </div>${img}</a>`;
+}
+const emptyHTML = (a, b) => `<div class="empty"><b>${esc(a)}</b>${esc(b)}</div>`;
+
+function renderStatic() {
+  const L = state.lang;
+  document.documentElement.lang = L;
+  document.documentElement.dir = L === 'en' ? 'ltr' : 'rtl';
+  document.title = t('appName');
+  $$('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  $$('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  $$('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+  const lb = $('#lang'); lb.textContent = L === 'en' ? 'ع' : 'EN'; lb.setAttribute('aria-label', L === 'en' ? 'العربية' : 'English');
+  $('.seal').alt = t('appName');
+  $('#today').textContent = fmtFull.format(new Date());
+  updateThemeButton();
 }
 
 function renderBanner() {
   const b = $('#banner');
   if (state.source === 'live') {
-    if (state.failed > 4) { b.hidden = false; b.textContent = `تعذّر الوصول إلى ${fmtNum.format(state.failed)} من مواقع الكليات والمراكز، لذلك قد تنقص بعض النشاطات.`; }
-    else b.hidden = true;
-  } else if (state.source === 'cache') {
-    b.hidden = false; b.textContent = `لا يوجد اتصال بموقع الجامعة. تُعرض بيانات محفوظة من ${fmtFull.format(state.ref)}.`;
+    b.hidden = !(state.failed > 4);
+    if (!b.hidden) b.textContent = t('bFailed', { n: fmtNum.format(state.failed) });
   } else {
-    b.hidden = false; b.textContent = `تُعرض نسخة محفوظة من ${fmtFull.format(state.ref)}. اضغط زر التحديث في الأعلى عند توفر الإنترنت.`;
+    b.hidden = false;
+    b.textContent = t(state.source === 'cache' ? 'bCache' : 'bSnap', { d: fmtFull.format(state.ref) });
   }
 }
 
 function renderHome() {
-  const week = state.items.filter(i => inWeek(i, 0));
-  const units = new Set(week.map(i => i.unit).filter(u => u !== 'uom'));
-  $('#p-total').textContent = fmtNum.format(week.length);
-  $('#p-units').textContent = fmtNum.format(units.size);
-  $('#p-all').textContent = fmtNum.format(UNITS.length);
+  const S = weekStats();
+  const active = S.rank.length;
+  $('#p-total').textContent = fmtNum.format(S.week.length);
+  $('#p-units').textContent = fmtNum.format(active);
+  $('#p-units-cap').textContent = t('unitsCap', { n: fmtNum.format(UNITS.length) });
 
-  const { start } = weekRange(0);
-  const days = Array.from({ length: 7 }, (_, k) => new Date(start.getTime() + k * DAY));
-  const counts = days.map(d => week.filter(i => dayKey(i.date) === dayKey(d)).length);
-  const max = Math.max(1, ...counts);
-  $('#p-days').innerHTML = days.map((d, k) => `
-    <button class="day ${counts[k] ? '' : 'zero'}" data-day="${dayKey(d)}" aria-label="${esc(fmtDay.format(d))}: ${counts[k]}">
-      <span class="n">${fmtNum.format(counts[k])}</span>
-      <span class="bar-wrap"><span class="bar" style="height:${Math.max(6, Math.round(counts[k] / max * 100))}%"></span></span>
+  const max = Math.max(1, ...S.counts);
+  $('#p-days').innerHTML = S.days.map((d, k) => `
+    <button class="day ${S.counts[k] ? '' : 'zero'}" data-day="${dayKey(d)}" aria-label="${esc(fmtDay.format(d))}: ${S.counts[k]}">
+      <span class="n">${fmtNum.format(S.counts[k])}</span>
+      <span class="bar-wrap"><span class="bar" style="height:${Math.max(6, Math.round(S.counts[k] / max * 100))}%"></span></span>
       <span class="d">${esc(fmtWd.format(d))}</span>
     </button>`).join('');
 
+  // الترتيب
+  const top = S.rank.slice(0, 5);
+  const topMax = top.length ? top[0][1] : 1;
+  $('#rank').innerHTML = top.length ? top.map(([id, n], k) => `
+    <li><button data-unit="${id}">
+      <span class="no">${fmtNum.format(k + 1)}</span>
+      <span class="nm">${esc(uname(unitById[id]))}</span>
+      <span class="ct">${fmtNum.format(n)}</span>
+      <span class="track"><span class="fill" style="width:${Math.round(n / topMax * 100)}%"></span></span>
+    </button></li>`).join('') : `<li class="empty" style="padding:18px">${esc(t('noRank'))}</li>`;
+
+  // التوزيع حسب النوع
+  const total = S.week.length || 1;
+  $('#stack').innerHTML = S.types.map(({ ty, n }) => `<span style="flex:${n};background:var(--t-${ty.id})" title="${esc(tname(ty))}: ${n}"></span>`).join('');
+  $('#stack').setAttribute('aria-label', S.types.map(({ ty, n }) => `${tname(ty)} ${n}`).join('، '));
+  $('#legend').innerHTML = S.types.map(({ ty, n }) =>
+    `<button data-legend="${ty.id}"><i style="background:var(--t-${ty.id})"></i>${esc(tname(ty))} <b>${fmtNum.format(n)}</b></button>`).join('');
+
   const news = state.items.filter(i => i.src === 'hq').sort((a, b) => b.date - a.date).slice(0, 8);
-  $('#news').innerHTML = news.length ? news.map(i => itemHTML(i, false)).join('')
-    : `<div class="empty"><b>لا توجد أخبار لعرضها</b>اضغط زر التحديث في الأعلى عند توفر الإنترنت.</div>`;
+  $('#news').innerHTML = news.length ? news.map(i => itemHTML(i, false)).join('') : emptyHTML(t('noNews'), t('noNewsHint'));
+  $('#report').disabled = !S.week.length;
 }
 
 function filtered() {
@@ -206,57 +335,53 @@ function filtered() {
 
 function renderActivities() {
   const base = filtered();
-  // شرائح الأنواع مع العدد
   const counts = {};
   base.forEach(i => counts[i.type] = (counts[i.type] || 0) + 1);
-  const chips = [{ id: 'all', name: 'الكل', n: base.length },
-    ...[...TYPES, TYPE_OTHER].filter(t => counts[t.id]).map(t => ({ ...t, n: counts[t.id] }))];
   if (state.type !== 'all' && !counts[state.type]) state.type = 'all';
-  $('#type-chips').innerHTML = chips.map(c =>
-    `<button class="chip ${state.type === c.id ? 'on' : ''}" data-type="${c.id}">${esc(c.name)} ${fmtNum.format(c.n)}</button>`).join('');
+  const chips = [{ id: 'all', label: t('all'), n: base.length }, ...ALL_TYPES.filter(x => counts[x.id]).map(x => ({ id: x.id, label: tname(x), n: counts[x.id] }))];
+  $('#type-chips').innerHTML = chips.map(c => `<button class="chip ${state.type === c.id ? 'on' : ''}" data-type="${c.id}">${esc(c.label)} ${fmtNum.format(c.n)}</button>`).join('');
 
   const list = base.filter(i => state.type === 'all' || i.type === state.type).sort((a, b) => b.date - a.date);
-  const box = $('#acts');
   let head = '';
-  if (state.day) { const [y, m, d] = state.day.split('-').map(Number); head = `<div class="banner">نشاطات يوم ${esc(fmtDay.format(new Date(y, m - 1, d)))} فقط. <button class="link-btn" data-clear-day>عرض الأسبوع كاملاً</button></div>`; }
-  if (!list.length) {
-    box.innerHTML = head + `<div class="empty"><b>لا توجد نشاطات مطابقة</b>جرّب أسبوعاً آخر أو أزل بعض عوامل التصفية.</div>`;
-    return;
+  if (state.day) {
+    const [y, m, d] = state.day.split('-').map(Number);
+    head = `<div class="banner">${esc(t('dayOnly', { d: fmtDay.format(new Date(y, m - 1, d)) }))} <button class="link-btn" data-clear-day>${esc(t('showWeek'))}</button></div>`;
   }
-  if (state.group === 'day') {
-    const groups = new Map();
-    list.forEach(i => { const k = dayKey(i.date); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(i); });
-    box.innerHTML = head + [...groups.values()].map(g =>
-      `<div class="day-label">${esc(fmtDay.format(g[0].date))} — ${fmtNum.format(g.length)}</div><div class="list">${g.map(i => itemHTML(i)).join('')}</div>`).join('');
-  } else {
-    const groups = new Map();
-    list.forEach(i => { if (!groups.has(i.unit)) groups.set(i.unit, []); groups.get(i.unit).push(i); });
-    box.innerHTML = head + [...groups.entries()].sort((a, b) => b[1].length - a[1].length).map(([u, g]) =>
-      `<div class="day-label">${esc((unitById[u] || HQ).name)} — ${fmtNum.format(g.length)}</div><div class="list">${g.map(i => itemHTML(i, false)).join('')}</div>`).join('');
-  }
+  const box = $('#acts');
+  if (!list.length) { box.innerHTML = head + emptyHTML(t('noActs'), t('noActsHint')); return; }
+  const groups = new Map();
+  const key = state.group === 'day' ? (i => dayKey(i.date)) : (i => i.unit);
+  list.forEach(i => { const k = key(i); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(i); });
+  let entries = [...groups.entries()];
+  if (state.group === 'unit') entries.sort((a, b) => b[1].length - a[1].length);
+  box.innerHTML = head + entries.map(([k, g]) => {
+    const label = state.group === 'day' ? fmtDay.format(g[0].date) : uname(unitById[k] || HQ);
+    return `<div class="day-label">${esc(label)} — ${fmtNum.format(g.length)}</div><div class="list">${g.map(i => itemHTML(i, state.group === 'day')).join('')}</div>`;
+  }).join('');
 }
 
 function renderUnitPicker() {
   const sel = $('#unit-picker');
-  sel.innerHTML = `<option value="all">كل الكليات والمراكز</option>` + GROUPS.map(g =>
-    `<optgroup label="${esc(g.name)}">${UNITS.filter(u => u.group === g.id).map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join('')}</optgroup>`).join('');
+  sel.setAttribute('aria-label', t('allPicker'));
+  sel.innerHTML = `<option value="all">${esc(t('allPicker'))}</option>` + GROUPS.map(g =>
+    `<optgroup label="${esc(gname(g))}">${UNITS.filter(u => u.group === g.id).map(u => `<option value="${u.id}">${esc(uname(u))}</option>`).join('')}</optgroup>`).join('');
   sel.value = state.unit;
 }
 
 function renderUnits() {
-  const q = norm($('#unit-search').value.trim());
+  const q = norm($('#unit-search').value.trim().toLowerCase());
   const week = state.items.filter(i => inWeek(i, 0));
   const count = id => week.filter(i => i.unit === id).length;
-  const chev = `<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 6-6 6 6 6"/></svg>`;
+  const chev = state.lang === 'en' ? 'm9 6 6 6-6 6' : 'm15 6-6 6 6 6';
   const html = GROUPS.map(g => {
-    const us = UNITS.filter(u => u.group === g.id && (!q || norm(u.name).includes(q)));
+    const us = UNITS.filter(u => u.group === g.id && (!q || norm(u.name).includes(q) || norm(uname(u).toLowerCase()).includes(q)));
     if (!us.length) return '';
-    return `<h2>${esc(g.name)}</h2><div class="units">${us.map(u => {
+    return `<div><h2>${esc(gname(g))}</h2><div class="units">${us.map(u => {
       const n = count(u.id);
-      return `<button class="unit" data-unit="${u.id}"><span class="nm">${esc(u.name)}</span><span class="ct ${n ? 'has' : ''}" title="نشاطات هذا الأسبوع">${fmtNum.format(n)}</span>${chev}</button>`;
-    }).join('')}</div>`;
+      return `<button class="unit" data-unit="${u.id}"><span class="nm">${esc(uname(u))}</span><span class="ct ${n ? 'has' : ''}" title="${esc(t('weekCount'))}">${fmtNum.format(n)}</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="${chev}"/></svg></button>`;
+    }).join('')}</div></div>`;
   }).join('');
-  $('#unit-groups').innerHTML = html || `<div class="empty" style="margin-top:14px"><b>لا توجد جهة بهذا الاسم</b>تأكد من كتابة الاسم بشكل صحيح.</div>`;
+  $('#unit-groups').innerHTML = html || `<div style="margin-top:14px">${emptyHTML(t('noUnit'), t('noUnitHint'))}</div>`;
 }
 
 const ICONS = {
@@ -268,70 +393,55 @@ const ICONS = {
   cert: '<circle cx="12" cy="9" r="5"/><path d="m9 13.5-1.5 7.5 4.5-2.5 4.5 2.5-1.5-7.5"/>',
   inbox: '<path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5 5h14l2 8v6H3v-6z"/>',
   house: '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>',
-  car: '<path d="M5 16V11l2-5h10l2 5v5"/><path d="M3 16h18v3H3z"/><circle cx="7.5" cy="13" r=".8"/><circle cx="16.5" cy="13" r=".8"/>',
+  car: '<path d="M5 16V11l2-5h10l2 5v5"/><path d="M3 16h18v3H3z"/>',
   gov: '<path d="M3 21h18M5 10v8M9.5 10v8M14.5 10v8M19 10v8M2 10h20L12 3z"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/>',
 };
 const svg = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[k] || ICONS.globe}</svg>`;
+const sname = (s, idx) => state.lang === 'en' ? EN.services[idx][0] : s.name;
+const snote = (s, idx) => state.lang === 'en' ? EN.services[idx][1] : s.note;
 
 function renderServices() {
-  $('#services').innerHTML = SERVICES.map(s =>
-    `<a class="svc" href="${esc(s.url)}" target="_blank" rel="noopener">${svg(s.icon)}<b>${esc(s.name)}</b><span>${esc(s.note)}</span></a>`).join('');
-  const quick = [SERVICES[0], SERVICES[1], SERVICES[3], SERVICES[8]];
-  $('#quick').innerHTML = quick.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${svg(s.icon)}${esc(s.name)}</a>`).join('');
+  $('#services').innerHTML = SERVICES.map((s, k) =>
+    `<a class="svc" href="${esc(s.url)}" target="_blank" rel="noopener">${svg(s.icon)}<b>${esc(sname(s, k))}</b><span>${esc(snote(s, k))}</span></a>`).join('');
+  $('#quick').innerHTML = [0, 1, 3, 8].map(k => `<a href="${esc(SERVICES[k].url)}" target="_blank" rel="noopener">${svg(SERVICES[k].icon)}${esc(sname(SERVICES[k], k))}</a>`).join('');
 }
 
 function renderAbout() {
   const A = ABOUT;
-  const theme = (() => { try { return localStorage.getItem(THEME_KEY) || 'auto'; } catch (e) { return 'auto'; } })();
+  const arrow = state.lang === 'en' ? '→' : '←';
+  const colleges = UNITS.filter(u => groupById[u.group].kind === 'college').length;
+  const pres = state.lang === 'en' ? EN.president : A.president;
   $('#about').innerHTML = `
     <div class="president">
-      <img src="${esc(A.presidentPhoto)}" alt="${esc(A.president)}" loading="lazy" onerror="this.style.visibility='hidden'">
-      <div>
-        <h3>${esc(A.president)}</h3>
-        <p>${esc(A.presidentTitle)}</p>
-        <a class="link-btn" href="${esc(A.presidentWordUrl)}" target="_blank" rel="noopener">قراءة كلمة السيد رئيس الجامعة</a>
-      </div>
+      <img src="${esc(A.presidentPhoto)}" alt="${esc(pres)}" loading="lazy" onerror="this.style.visibility='hidden'">
+      <div><h3>${esc(pres)}</h3><p>${esc(t('presTitle'))}</p>
+        <a class="link-btn" href="${esc(A.presidentWordUrl)}" target="_blank" rel="noopener">${esc(t('readWord'))}</a></div>
     </div>
-
-    <h2>نبذة</h2>
-    <div class="prose">
-      <p>تأسست جامعة الموصل عام ${fmtNum.format(A.founded).replace(/٬/g, '')}، وهي من أكبر الجامعات العراقية وأعرقها.</p>
-      <p>تضم اليوم ${fmtNum.format(UNITS.filter(u => GROUPS.find(g => g.id === u.group).kind === 'college').length)} كلية، إلى جانب مراكز بحثية وخدمية، ومكتبة مركزية أُعيد إعمارها، ومسرحاً كبيراً يخدم المدينة.</p>
-    </div>
-
-    <h2>روابط مهمة</h2>
+    <h2>${esc(t('about'))}</h2>
+    <div class="prose"><p>${esc(t('about1', { y: String(A.founded).replace(/\d/g, d => state.lang === 'en' ? d : '٠١٢٣٤٥٦٧٨٩'[d]) }))}</p><p>${esc(t('about2', { n: fmtNum.format(colleges) }))}</p></div>
+    <h2>${esc(t('links'))}</h2>
     <div class="rows">
-      <a href="${esc(A.calendarUrl)}" target="_blank" rel="noopener"><span>التقويم الجامعي 2026–2027</span><span>←</span></a>
-      <a href="${esc(A.contactUrl)}" target="_blank" rel="noopener"><span>اتصل بنا</span><span>←</span></a>
-      <a href="https://uomosul.edu.iq/" target="_blank" rel="noopener"><span>الموقع الرسمي</span><span>uomosul.edu.iq</span></a>
-      <div><span>العنوان</span><span>${esc(A.address)}</span></div>
-      <div><span>الرمز البريدي</span><span>${esc(A.postal)}</span></div>
+      <a href="${esc(A.calendarUrl)}" target="_blank" rel="noopener"><span>${esc(t('calendar'))}</span><span>${arrow}</span></a>
+      <a href="${esc(A.contactUrl)}" target="_blank" rel="noopener"><span>${esc(t('contact'))}</span><span>${arrow}</span></a>
+      <a href="https://uomosul.edu.iq/" target="_blank" rel="noopener"><span>${esc(t('officialSite'))}</span><span>uomosul.edu.iq</span></a>
+      <div><span>${esc(t('address'))}</span><span>${esc(state.lang === 'en' ? EN.address : A.address)}</span></div>
+      <div><span>${esc(t('postal'))}</span><span>${esc(A.postal)}</span></div>
     </div>
-
-    <h2>تابعونا</h2>
-    <div class="rows">${A.social.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener"><span>${esc(s.name)}</span><span>←</span></a>`).join('')}</div>
-
-    <h2>المظهر</h2>
-    <div class="seg" id="seg-theme" style="grid-template-columns:repeat(3,1fr)">
-      <button data-theme-set="auto" class="${theme === 'auto' ? 'on' : ''}">تلقائي</button>
-      <button data-theme-set="light" class="${theme === 'light' ? 'on' : ''}">فاتح</button>
-      <button data-theme-set="dark" class="${theme === 'dark' ? 'on' : ''}">داكن</button>
-    </div>
-
+    <h2>${esc(t('follow'))}</h2>
+    <div class="rows">${A.social.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener"><span>${esc(state.lang === 'en' ? s.url.split('/')[2].replace('www.', '') : s.name)}</span><span>${arrow}</span></a>`).join('')}</div>
     <div class="dedication">
-      <div class="h">إهداء</div>
-      <p>إلى الأستاذ الدكتور ${esc(A.president.replace('أ.د. ', ''))}</p>
-      <p>رئيس جامعة الموصل المحترم</p>
-      <p>عرفاناً بجهودكم في نهضة جامعتنا، أضع بين أيديكم هذا التطبيق ليكون نافذةً يوميةً على نشاطات كلياتها ومراكزها.</p>
-      <div class="by">تصميم وتطوير: م.م. علي عبد الوهاب يحيى الصفار<br>كلية الإدارة والاقتصاد — جامعة الموصل<br>ali_alsaffar@uomosul.edu.iq</div>
+      <div class="h">${esc(t('dedTitle'))}</div>
+      <p class="to">${esc(t('ded1'))}</p>
+      <p>${esc(t('ded2'))}</p>
+      <p>${esc(t('ded3'))}</p>
+      <div class="by">${esc(t('dedBy'))}<br>${esc(t('dedCollege'))}<br>ali_alsaffar@uomosul.edu.iq</div>
     </div>
-    <footer class="credit">البيانات مأخوذة من الموقع الرسمي لجامعة الموصل</footer>`;
+    <footer class="credit">${esc(t('source'))}</footer>`;
 }
 
-function renderAll() {
-  renderBanner(); renderHome(); renderActivities(); renderUnits();
-}
+function renderAll() { renderBanner(); renderHome(); renderActivities(); renderUnits(); }
+function renderEverything() { setFormatters(); renderStatic(); renderUnitPicker(); renderServices(); renderAbout(); renderAll(); }
 
 /* ---------- نافذة الجهة ---------- */
 function openUnit(id) {
@@ -340,68 +450,174 @@ function openUnit(id) {
   const week = state.items.filter(i => i.unit === id && inWeek(i, 0)).sort((a, b) => b.date - a.date);
   const sheet = $('#sheet');
   sheet.innerHTML = `<div class="grip"></div>
-    <h3 id="sheet-title">${esc(u.name)}</h3>
-    <div class="grp">${esc(g ? g.name : '')}</div>
+    <h3 id="sheet-title">${esc(uname(u))}</h3>
+    <div class="grp">${esc(g ? gname(g) : '')}</div>
     <div class="actions">
-      <a class="btn" href="${esc(u.base)}" target="_blank" rel="noopener">الموقع الإلكتروني</a>
-      <button class="btn ghost" data-show-acts="${u.id}">كل نشاطاتها</button>
-      <button class="btn ghost" data-close>إغلاق</button>
+      <a class="btn" href="${esc(u.base)}" target="_blank" rel="noopener">${esc(t('website'))}</a>
+      <button class="btn ghost" data-show-acts="${u.id}">${esc(t('allActs'))}</button>
+      <button class="btn ghost" data-close>${esc(t('close'))}</button>
     </div>
-    <h2 style="margin-top:6px">هذا الأسبوع — ${fmtNum.format(week.length)}</h2>
-    <div class="list">${week.length ? week.map(i => itemHTML(i, false)).join('') : `<div class="empty"><b>لا توجد نشاطات منشورة هذا الأسبوع</b>قد تنشر الجهة أخبارها لاحقاً على موقعها.</div>`}</div>`;
-  $('#sheet-bg').classList.add('on'); sheet.classList.add('on');
-  sheet.scrollTop = 0;
+    <h2 style="margin-top:6px">${esc(t('thisWeekN', { n: fmtNum.format(week.length) }))}</h2>
+    <div class="list">${week.length ? week.map(i => itemHTML(i, false)).join('') : emptyHTML(t('unitEmpty'), t('unitEmptyHint'))}</div>`;
+  $('#sheet-bg').classList.add('on'); sheet.classList.add('on'); sheet.scrollTop = 0;
   $('[data-close]', sheet).focus();
 }
 function closeSheet() { $('#sheet').classList.remove('on'); $('#sheet-bg').classList.remove('on'); }
 
-/* ---------- التنقل ---------- */
+/* ---------- الوضع الداكن: شمس وقمر ---------- */
+const sysDark = window.matchMedia('(prefers-color-scheme: dark)');
+const isDark = () => { const s = store.get(THEME_KEY); return s ? s === 'dark' : sysDark.matches; };
+function applyTheme() {
+  const dark = isDark();
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.documentElement.classList.toggle('is-dark', dark);
+  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = dark ? '#0d1a2b' : '#12304f';
+  updateThemeButton();
+}
+function updateThemeButton() {
+  const b = $('#theme'); if (!b) return;
+  b.setAttribute('aria-label', isDark() ? t('lightOn') : t('darkOn'));
+}
+sysDark.addEventListener && sysDark.addEventListener('change', () => { if (!store.get(THEME_KEY)) applyTheme(); });
+
+/* ---------- التقرير الأسبوعي (صورة) ---------- */
+async function makeReport() {
+  const btn = $('#report'); if (btn.disabled) return;
+  btn.disabled = true; toast(t('tMaking'));
+  try {
+    const S = weekStats();
+    const en = state.lang === 'en';
+    const body = en ? '"IBM Plex Sans Arabic", system-ui, sans-serif' : '"IBM Plex Sans Arabic", Tahoma, sans-serif';
+    const disp = en ? '"Cormorant Garamond", Georgia, serif' : '"Aref Ruqaa", "IBM Plex Sans Arabic", serif';
+    try { await Promise.all([document.fonts.load(`700 40px ${disp}`), document.fonts.load(`600 30px ${body}`), document.fonts.load(`400 30px ${body}`)]); } catch (e) {}
+    const W = 1080, H = 1350, P = 72;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    x.direction = en ? 'ltr' : 'rtl';
+    const start = en ? P : W - P, end = en ? W - P : P;
+    const align = en ? 'left' : 'right', alignEnd = en ? 'right' : 'left';
+    const INK = '#12304f', BRASS = '#a8792a', MARBLE = '#eef0ec', TEXT = '#1a2230', MUTED = '#5b6574', VEIN = '#d6dbd5';
+
+    x.fillStyle = MARBLE; x.fillRect(0, 0, W, H);
+    // الترويسة
+    x.fillStyle = INK; x.fillRect(0, 0, W, 300);
+    x.fillStyle = BRASS; x.fillRect(0, 300, W, 6);
+    const icon = new Image(); icon.src = 'icons/icon-192.png';
+    await new Promise(r => { icon.onload = r; icon.onerror = r; });
+    if (icon.naturalWidth) x.drawImage(icon, en ? P : W - P - 120, 70, 120, 120);
+    const tx = en ? P + 150 : W - P - 150;
+    x.textAlign = align; x.fillStyle = '#f4f1e8';
+    x.font = `700 ${en ? 64 : 76}px ${disp}`; x.fillText(t('appName'), tx, 140);
+    x.font = `600 34px ${body}`; x.fillStyle = '#e4d3ab'; x.fillText(t('rTitle'), tx, 200);
+    const r = weekRange(0);
+    x.font = `400 26px ${body}`; x.fillStyle = 'rgba(244,241,232,.75)';
+    x.fillText(`${fmtRange.format(r.start)} – ${fmtRange.format(new Date(r.end.getTime() - DAY))}`, tx, 248);
+
+    // الأرقام
+    let y = 470;
+    x.textAlign = align; x.fillStyle = INK; x.font = `700 130px ${disp}`;
+    x.fillText(fmtNum.format(S.week.length), start, y);
+    x.font = `400 30px ${body}`; x.fillStyle = MUTED; x.fillText(t('rTotal'), start, y + 50);
+    x.textAlign = alignEnd; x.fillStyle = TEXT; x.font = `700 64px ${body}`;
+    x.fillText(fmtNum.format(S.rank.length), end, y - 30);
+    x.font = `400 28px ${body}`; x.fillStyle = MUTED; x.fillText(t('rUnits', { n: fmtNum.format(UNITS.length) }), end, y + 20);
+
+    // الأكثر نشاطاً
+    y = 610;
+    x.textAlign = align; x.fillStyle = INK; x.font = `700 36px ${body}`; x.fillText(t('rTop'), start, y);
+    const top = S.rank.slice(0, 5), tmax = top.length ? top[0][1] : 1;
+    top.forEach(([id, n], k) => {
+      const yy = y + 60 + k * 78;
+      x.fillStyle = k === 0 ? BRASS : VEIN;
+      x.beginPath(); x.arc(en ? P + 22 : W - P - 22, yy - 10, 22, 0, Math.PI * 2); x.fill();
+      x.fillStyle = k === 0 ? '#fff' : MUTED; x.textAlign = 'center'; x.font = `700 24px ${body}`;
+      x.fillText(fmtNum.format(k + 1), en ? P + 22 : W - P - 22, yy - 2);
+      x.textAlign = align; x.fillStyle = TEXT; x.font = `600 28px ${body}`;
+      x.fillText(uname(unitById[id]), en ? P + 62 : W - P - 62, yy);
+      x.textAlign = alignEnd; x.fillStyle = INK; x.font = `700 28px ${body}`; x.fillText(fmtNum.format(n), end, yy);
+      const bw = (W - 2 * P - 62) * n / tmax;
+      x.fillStyle = VEIN; x.fillRect(en ? P + 62 : P, yy + 16, W - 2 * P - 62, 8);
+      x.fillStyle = k === 0 ? BRASS : '#1d4570';
+      x.fillRect(en ? P + 62 : W - P - 62 - bw, yy + 16, bw, 8);
+    });
+
+    // حسب النوع
+    y = 1030;
+    x.textAlign = align; x.fillStyle = INK; x.font = `700 36px ${body}`; x.fillText(t('rTypes'), start, y);
+    const tot = S.week.length || 1;
+    let cx = en ? P : W - P;
+    const bwAll = W - 2 * P;
+    S.types.forEach(({ ty, n }) => {
+      const w = bwAll * n / tot;
+      x.fillStyle = cssVar('--t-' + ty.id) || '#888';
+      if (en) { x.fillRect(cx, y + 30, Math.max(w - 3, 2), 26); cx += w; } else { x.fillRect(cx - w + 3, y + 30, Math.max(w - 3, 2), 26); cx -= w; }
+    });
+    let lx = en ? P : W - P, ly = y + 110;
+    x.font = `400 26px ${body}`;
+    S.types.slice(0, 8).forEach(({ ty, n }) => {
+      const label = `${tname(ty)} ${fmtNum.format(n)}`;
+      const w = x.measureText(label).width + 50;
+      if ((en && lx + w > W - P) || (!en && lx - w < P)) { lx = en ? P : W - P; ly += 46; }
+      x.fillStyle = cssVar('--t-' + ty.id) || '#888';
+      x.beginPath(); x.arc(en ? lx + 9 : lx - 9, ly - 9, 9, 0, Math.PI * 2); x.fill();
+      x.fillStyle = TEXT; x.textAlign = align; x.fillText(label, en ? lx + 26 : lx - 26, ly);
+      lx += en ? w : -w;
+    });
+
+    // التذييل
+    x.fillStyle = INK; x.fillRect(0, H - 90, W, 90);
+    x.fillStyle = 'rgba(244,241,232,.85)'; x.font = `400 24px ${body}`; x.textAlign = 'center';
+    x.fillText(`${t('rFoot')} · ${APP_URL}`, W / 2, H - 38);
+
+    const blob = await new Promise(res => c.toBlob(res, 'image/png'));
+    const file = new File([blob], `mosul-weekly-${dayKey(new Date())}.png`, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: t('rTitle') }); } catch (e) {}
+    } else {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      toast(t('tSaved'));
+    }
+  } finally { btn.disabled = false; }
+}
+
+/* ---------- التنقل والأحداث ---------- */
 function go(tab) {
   $$('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   $$('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + tab));
-  window.scrollTo({ top: 0 });
+  closeSheet(); window.scrollTo({ top: 0 });
 }
-
-function setSeg(segId, attr, val) { $$(`#${segId} button`).forEach(b => b.classList.toggle('on', b.dataset[attr] === String(val))); }
-
-function applyTheme(t) {
-  const root = document.documentElement;
-  if (t === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', t);
+const setSeg = (id, attr, val) => $$(`#${id} button`).forEach(b => b.classList.toggle('on', b.dataset[attr] === String(val)));
+function resetActs(over) {
+  Object.assign(state, { week: 0, kind: 'all', unit: 'all', type: 'all', day: null, q: '' }, over);
+  $('#search').value = ''; $('#unit-picker').value = state.unit;
+  setSeg('seg-week', 'week', state.week); setSeg('seg-kind', 'kind', state.kind);
 }
 
 function bind() {
   document.addEventListener('click', e => {
-    const t = e.target.closest('button, [data-day]');
-    if (!t) return;
-    if (t.dataset.tab) return go(t.dataset.tab);
-    if (t.dataset.go) return go(t.dataset.go);
-    if (t.dataset.day && t.classList.contains('day')) {
-      state.day = t.dataset.day; state.week = 0; state.kind = 'all'; state.unit = 'all'; state.type = 'all';
-      // نُظهر كل المصادر عند اختيار يوم من نبض الأسبوع
-      state.kind = 'any';
-      setSeg('seg-week', 'week', 0); setSeg('seg-kind', 'kind', 'any'); $('#unit-picker').value = 'all';
-      renderActivities(); go('activities'); return;
-    }
-    if ('clearDay' in t.dataset) { state.day = null; if (state.kind === 'any') { state.kind = 'all'; setSeg('seg-kind', 'kind', 'all'); } return renderActivities(); }
-    if (t.dataset.week !== undefined) { state.week = +t.dataset.week; state.day = null; setSeg('seg-week', 'week', state.week); return renderActivities(); }
-    if (t.dataset.kind) { state.kind = t.dataset.kind; state.day = null; if (state.kind === 'hq') { state.unit = 'all'; $('#unit-picker').value = 'all'; } setSeg('seg-kind', 'kind', state.kind); return renderActivities(); }
-    if (t.dataset.group) { state.group = t.dataset.group; setSeg('seg-group', 'group', state.group); return renderActivities(); }
-    if (t.dataset.type) { state.type = t.dataset.type; return renderActivities(); }
-    if (t.dataset.unit) return openUnit(t.dataset.unit);
-    if (t.dataset.showActs) {
-      closeSheet(); state.unit = t.dataset.showActs; state.kind = 'all'; state.day = null; state.type = 'all';
-      $('#unit-picker').value = state.unit; setSeg('seg-kind', 'kind', 'all'); renderActivities(); go('activities'); return;
-    }
-    if ('close' in t.dataset) return closeSheet();
-    if (t.dataset.themeSet) {
-      const v = t.dataset.themeSet; applyTheme(v); setSeg('seg-theme', 'themeSet', v);
-      try { localStorage.setItem(THEME_KEY, v); } catch (err) {}
-      return;
-    }
+    const b = e.target.closest('button');
+    if (!b) return;
+    const d = b.dataset;
+    if (d.tab) return go(d.tab);
+    if (d.go) return go(d.go);
+    if (d.day && b.classList.contains('day')) { resetActs({ day: d.day, kind: 'any' }); renderActivities(); return go('activities'); }
+    if (d.legend) { resetActs({ type: d.legend, kind: 'any' }); renderActivities(); return go('activities'); }
+    if ('clearDay' in d) { state.day = null; if (state.kind === 'any') { state.kind = 'all'; setSeg('seg-kind', 'kind', 'all'); } return renderActivities(); }
+    if (d.week !== undefined) { state.week = +d.week; state.day = null; setSeg('seg-week', 'week', state.week); return renderActivities(); }
+    if (d.kind) { state.kind = d.kind; state.day = null; if (d.kind === 'hq') { state.unit = 'all'; $('#unit-picker').value = 'all'; } setSeg('seg-kind', 'kind', d.kind); return renderActivities(); }
+    if (d.group) { state.group = d.group; setSeg('seg-group', 'group', d.group); return renderActivities(); }
+    if (d.type) { state.type = d.type; return renderActivities(); }
+    if (d.unit) return openUnit(d.unit);
+    if (d.showActs) { resetActs({ unit: d.showActs }); renderActivities(); return go('activities'); }
+    if ('close' in d) return closeSheet();
   });
   $('#sheet-bg').addEventListener('click', closeSheet);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
   $('#refresh').addEventListener('click', () => refresh(true));
+  $('#report').addEventListener('click', makeReport);
+  $('#theme').addEventListener('click', () => { store.set(THEME_KEY, isDark() ? 'light' : 'dark'); applyTheme(); });
+  $('#lang').addEventListener('click', () => { state.lang = state.lang === 'en' ? 'ar' : 'en'; store.set(LANG_KEY, state.lang); renderEverything(); });
   $('#unit-picker').addEventListener('change', e => { state.unit = e.target.value; if (state.unit !== 'all' && state.kind === 'hq') { state.kind = 'all'; setSeg('seg-kind', 'kind', 'all'); } renderActivities(); });
   let st; $('#search').addEventListener('input', e => { clearTimeout(st); st = setTimeout(() => { state.q = e.target.value; renderActivities(); }, 150); });
   $('#unit-search').addEventListener('input', renderUnits);
@@ -409,14 +625,11 @@ function bind() {
 
 /* ---------- التشغيل ---------- */
 function init() {
-  try { applyTheme(localStorage.getItem(THEME_KEY) || 'auto'); } catch (e) {}
-  $('#today').textContent = fmtFull.format(new Date());
+  applyTheme();
   if (!loadCache()) loadSnapshot();
-  renderUnitPicker(); renderServices(); renderAbout(); renderAll(); bind();
+  renderEverything(); bind();
   refresh(false);
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 init();
 })();

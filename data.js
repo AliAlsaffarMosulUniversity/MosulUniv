@@ -157,3 +157,34 @@ const TYPES = [
   { id: 'notice',    name: 'إعلان',        words: ['إعلان', 'اعلان', 'تنويه', 'تعلن'] },
 ];
 const TYPE_OTHER = { id: 'other', name: 'خبر' };
+
+/* الأسماء الإنجليزية — تُستخدم عند التبديل إلى English */
+const EN = {
+  hq: 'University Presidency',
+  units: {
+    medicine: 'College of Medicine', pharmacy: 'College of Pharmacy', dentistry: 'College of Dentistry',
+    veterinarymedicine: 'College of Veterinary Medicine', nursing: 'College of Nursing', batoolmedicine: 'Al-Batool College of Medicine',
+    engineering: 'College of Engineering', petroleumengineering: 'College of Petroleum and Mining Engineering', agriculture: 'College of Agriculture and Forestry',
+    science: 'College of Science', computerscience: 'College of Computer Science and Mathematics', education: 'College of Education for Pure Sciences',
+    environmentalscience: 'College of Environmental Science', physicaleducation: 'College of Physical Education and Sport Sciences', finearts: 'College of Fine Arts',
+    administrationeconomic: 'College of Administration and Economics', tourismscience: 'College of Tourism Sciences',
+    arts: 'College of Arts', educationhc: 'College of Education for Humanities', rights: 'College of Law', basiceducation: 'College of Basic Education',
+    islamicscience: 'College of Islamic Sciences', politicalscience: 'College of Political Science', womeneducation: 'College of Education for Women', archeology: 'College of Archaeology',
+    watercenter: 'Dams and Water Resources Research Center', regionalstudiescenter: 'Regional Studies Center', afcar: 'Dryland and Conservation Agriculture Research Center',
+    peacebuilding: 'Peacebuilding and Coexistence Center', remotesensingcenter: 'Remote Sensing Center', environmentcenter: 'Environmental Research Center',
+    mosulstudiescenter: 'Mosul Studies Center', medicalcenter: 'Medical Research and Treatment Centers', psychologicalcenter: 'Educational and Psychological Research Center',
+    continuingeducationcenter: 'Continuing Education Center', computercenter: 'Computer Center',
+  },
+  groups: { med: 'Medical colleges', eng: 'Engineering colleges', sci: 'Pure science colleges', hum: 'Humanities colleges', rc: 'Research centers', sc: 'Service centers' },
+  types: { council: 'Council & meeting', defense: 'Thesis defense', workshop: 'Workshop', seminar: 'Seminar', course: 'Course', conf: 'Conference',
+    lecture: 'Lecture', agreement: 'Agreement', campaign: 'Campaign', event: 'Ceremony', notice: 'Announcement', other: 'News' },
+  services: [
+    ['Student Information System', 'Student grades and records'], ['Researcher Platform', 'Faculty profiles and research'], ['CV System', 'Faculty CVs'],
+    ['Staff Email', 'Official staff mailbox'], ['Student Email', 'Official student mailbox'], ['Undergraduate Admission', 'Apply and enroll'],
+    ['Postgraduate Admission', 'Master’s and PhD'], ['Computer Proficiency', 'Registration and results'], ['Complaints System', 'Submit a complaint or inquiry'],
+    ['University Housing', 'House and apartment allocation'], ['Car Badge System', 'Vehicle entry badges'], ['Ministry Student System', 'Ministry of Higher Education'],
+    ['Ministry HR System', 'Ministry of Higher Education'], ['Study in Iraq', 'International students portal'],
+  ],
+  president: 'Prof. Dr. Waheed Mahmood Al-Ibrahimi',
+  address: 'Main Cultural Complex Street, Mosul – Iraq',
+};
