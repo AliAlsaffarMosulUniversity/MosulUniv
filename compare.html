@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ميزان الجامعات — مقارنة جامعة الموصل</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1F0; --surface:#FFFFFF; --sunk:#E2E8E6; --ink:#12272B; --muted:#56696C;
+  --line:#C9D4D2; --river:#0F5E63; --river-soft:#D5E8E7; --gold:#B87708; --gold-soft:#F6E7C6;
+  --dot:#93A5A6; --warn:#8A4B12;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1A1D; --surface:#15272B; --sunk:#0A1416; --ink:#E7EFED; --muted:#9BB0B1;
+    --line:#2A4146; --river:#63C7C4; --river-soft:#1C3A3D; --gold:#EDB54F; --gold-soft:#3B2F14;
+    --dot:#5F7578; --warn:#F0B67A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1A1D; --surface:#15272B; --sunk:#0A1416; --ink:#E7EFED; --muted:#9BB0B1;
+  --line:#2A4146; --river:#63C7C4; --river-soft:#1C3A3D; --gold:#EDB54F; --gold-soft:#3B2F14;
+  --dot:#5F7578; --warn:#F0B67A;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans Arabic","Noto Sans Arabic",Tahoma,sans-serif;font-size:16px;line-height:1.7}
+h1,h2,h3{font-family:"Reem Kufi","IBM Plex Sans Arabic",Tahoma,sans-serif;line-height:1.35;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;display:inline-block}
+
+.app{max-width:780px;margin:0 auto;padding:20px 16px 96px}
+.screen{display:none}
+.screen.on{display:block}
+
+/* رأس الصفحة */
+.mast{padding:8px 0 20px;border-bottom:2px solid var(--ink);margin-bottom:20px}
+.mast h1{font-size:clamp(1.9rem,7vw,2.9rem);font-weight:700;letter-spacing:0}
+.mast p{margin:10px 0 0;max-width:34em;color:var(--muted)}
+.mast p strong{color:var(--ink);font-weight:600}
+.sec-title{font-size:1.25rem;font-weight:700;margin:28px 0 6px}
+.sec-note{color:var(--muted);font-size:.92rem;margin:0 0 14px;max-width:36em}
+
+/* رقائق الجامعات */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px 6px 14px;
+  font-size:.88rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;min-height:38px}
+.chip i{width:10px;height:10px;border-radius:50%;background:var(--dot);flex:none}
+.chip[aria-pressed="true"]{border-color:var(--ink);font-weight:600}
+.chip[aria-pressed="true"] i{background:var(--c)}
+.chip[disabled]{cursor:default;opacity:1}
+
+/* شريط الموقع */
+.axis-h{font-size:.82rem;color:var(--river);font-weight:600;margin:26px 0 4px;
+  border-bottom:1px solid var(--line);padding-bottom:4px}
+.strip{background:var(--surface);border:1px solid var(--line);border-radius:6px;margin:10px 0;overflow:hidden}
+.strip-btn{display:block;width:100%;text-align:start;background:none;border:0;padding:14px 14px 10px;cursor:pointer}
+.strip-top{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.strip-name{font-weight:600;font-size:1rem}
+.strip-rank{font-size:.85rem;color:var(--muted);white-space:nowrap}
+.strip-rank b{color:var(--gold);font-weight:600}
+.track-wrap{padding:26px 16px 22px;direction:ltr}
+.track{position:relative;height:2px;background:var(--line)}
+.dotp{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--dot);
+  transform:translate(-50%,-50%);border:2px solid var(--surface)}
+.dotp.l2{top:calc(50% + 9px)}
+.dotp.hl{width:18px;height:18px;background:var(--c);z-index:2}
+.dotp .tag{position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:.72rem;
+  color:var(--ink);font-weight:600;bottom:18px;direction:rtl}
+.dotp .tag.dn{bottom:auto;top:18px}
+.ends{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);padding:0 14px 10px;direction:ltr}
+.detail{border-top:1px solid var(--line);padding:12px 14px 14px;background:var(--sunk)}
+.rowbar{display:grid;grid-template-columns:7.2em 1fr auto;gap:10px;align-items:center;font-size:.88rem;padding:4px 0}
+.rowbar .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.rowbar .bar span{display:block;height:100%;background:var(--dot);border-radius:4px}
+.rowbar.me{font-weight:600}
+.rowbar.me .bar span{background:var(--gold)}
+.src{font-size:.78rem;color:var(--muted);margin:10px 0 0}
+.flag{color:var(--warn)}
+
+.pending{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.pending li{display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:9px 2px;border-bottom:1px solid var(--line);font-size:.92rem}
+.pending small{display:block;color:var(--muted);font-size:.8rem}
+.link{background:none;border:0;color:var(--river);font-weight:600;cursor:pointer;padding:6px 4px;white-space:nowrap;
+  text-decoration:underline;text-underline-offset:3px}
+
+/* جدول المقارنة */
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:9px 10px;text-align:start;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{font-weight:600;border-bottom:2px solid var(--ink);white-space:nowrap}
+thead th i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:5px;background:var(--c)}
+tbody th{font-weight:500;min-width:9.5em}
+td.best{font-weight:600;background:var(--river-soft)}
+td.na{color:var(--muted)}
+tr.ax th{background:var(--sunk);color:var(--river);font-size:.8rem;font-weight:600}
+svg text{font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;fill:var(--ink)}
+.slope{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 6px}
+
+/* الأوزان */
+.wrow{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.wrow label{font-weight:500}
+.wrow output{font-variant-numeric:tabular-nums;color:var(--river);font-weight:600}
+.wrow input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--river);direction:ltr}
+.wrow.empty label,.wrow.empty output{color:var(--muted)}
+.wrow small{grid-column:1/-1;color:var(--muted);font-size:.8rem}
+.rank{list-style:none;margin:0;padding:0;counter-reset:r}
+.rank li{counter-increment:r;display:grid;grid-template-columns:1.6em 1fr auto;gap:4px 10px;align-items:center;
+  padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:6px;margin-bottom:6px}
+.rank li::before{content:counter(r);font-family:"Reem Kufi",sans-serif;font-weight:700;font-size:1.2rem;color:var(--muted)}
+.rank li.me{border-color:var(--gold);background:var(--gold-soft)}
+.rank li.me::before{color:var(--gold)}
+.rank .bar{grid-column:2/-1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.rank .bar span{display:block;height:100%;background:var(--river)}
+.rank li.me .bar span{background:var(--gold)}
+.rank small{grid-column:2/-1;color:var(--muted);font-size:.78rem}
+.notice{border-inline-start:4px solid var(--gold);background:var(--gold-soft);padding:10px 14px;border-radius:0 6px 6px 0;
+  font-size:.9rem;margin:0 0 16px}
+
+/* إدخال البيانات */
+.field{display:block;margin:0 0 12px}
+.field span{display:block;font-size:.85rem;font-weight:500;margin-bottom:4px}
+.field input,.field select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;
+  background:var(--surface);min-height:44px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 14px}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin:6px 0 4px}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:6px;padding:10px 18px;
+  font-weight:600;cursor:pointer;min-height:44px}
+.btn.ghost{background:none;color:var(--ink)}
+textarea{min-height:110px;direction:ltr;font-size:.8rem;font-family:ui-monospace,Consolas,monospace}
+.srclist{margin:0;padding:0;list-style:none}
+.srclist li{padding:9px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.srclist small{display:block;color:var(--muted)}
+
+/* شريط التنقل */
+.tabs{position:fixed;inset-inline:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs div{max-width:780px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.tabs button{background:none;border:0;border-top:3px solid transparent;padding:12px 4px 13px;cursor:pointer;
+  font-size:.92rem;color:var(--muted);min-height:52px}
+.tabs button[aria-selected="true"]{color:var(--ink);font-weight:600;border-top-color:var(--gold)}
+.toast{position:fixed;bottom:calc(72px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);padding:9px 18px;border-radius:6px;font-size:.9rem;opacity:0;pointer-events:none;
+  transition:opacity .2s;z-index:20}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <section class="screen on" id="s-pos" role="tabpanel">
+    <header class="mast">
+      <h1>أين تقف جامعة الموصل؟</h1>
+      <p id="lead"></p>
+    </header>
+    <p class="sec-note">مقارنة مع سبع جامعات عراقية. كل خط يمثل مؤشراً، وكل نقطة جامعة. اضغط اسم جامعة لتلوين نقطتها، واضغط المؤشر لعرض القيم كاملة.</p>
+    <div class="chips" id="hl-chips"></div>
+    <div id="strips"></div>
+  </section>
+
+  <section class="screen" id="s-cmp" role="tabpanel">
+    <header class="mast">
+      <h1>وجهاً لوجه</h1>
+      <p>اختر من جامعتين إلى أربع. الخانة المظللة هي الأفضل في ذلك المؤشر.</p>
+    </header>
+    <div class="chips" id="cmp-chips"></div>
+    <div class="scroll"><table id="cmp-table"></table></div>
+    <h2 class="sec-title">التصنيف العراقي بين 2024 و2025</h2>
+    <p class="sec-note">درجة كل جامعة في النسختين. الخطوط الملونة للجامعات المختارة أعلاه.</p>
+    <div class="slope" id="slope"></div>
+  </section>
+
+  <section class="screen" id="s-w" role="tabpanel">
+    <header class="mast">
+      <h1>الأوزان والترتيب</h1>
+      <p>حرّك وزن كل محور، والترتيب يتغير فوراً. لا يوجد ترتيب واحد صحيح، فالترتيب يتبع ما تعدّه مهماً.</p>
+    </header>
+    <div class="notice" id="cover-note"></div>
+    <ol class="rank" id="rank"></ol>
+    <h2 class="sec-title">وزن كل محور</h2>
+    <div id="weights"></div>
+    <div class="btns"><button class="btn ghost" id="w-reset">إعادة الأوزان الافتراضية</button></div>
+  </section>
+
+  <section class="screen" id="s-data" role="tabpanel">
+    <header class="mast">
+      <h1>المصادر وطريقة الحساب</h1>
+      <p>كل مؤشر في هذا التطبيق متوفر للجامعات الثماني كلها، ومأخوذ من مصدره المعلن.</p>
+    </header>
+    <ul class="srclist" id="srclist"></ul>
+    <h2 class="sec-title">طريقة الحساب</h2>
+    <p class="sec-note">كل مؤشر يُحوَّل إلى مقياس من صفر إلى مئة بين الجامعات الثماني: الأفضل مئة والأدنى صفر. درجة المحور هي متوسط مؤشراته، والدرجة النهائية متوسط المحاور بحسب أوزانها. «غير مدرجة» في تصنيف عالمي تُحسب صفراً في ذلك المؤشر. عدد الطلبة وسنة التأسيس للعرض فقط ولا يدخلان في الترتيب.</p>
+    <p class="sec-note" id="stamp"></p>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="شاشات التطبيق"><div role="tablist">
+  <button role="tab" data-tab="pos" aria-selected="true">الموقع</button>
+  <button role="tab" data-tab="cmp" aria-selected="false">وجهاً لوجه</button>
+  <button role="tab" data-tab="w" aria-selected="false">الأوزان</button>
+  <button role="tab" data-tab="data" aria-selected="false">المصادر</button>
+</div></nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+var UNIS=[
+ {id:"mosul",n:"جامعة الموصل",s:"الموصل",c:"#C8881A"},
+ {id:"baghdad",n:"جامعة بغداد",s:"بغداد",c:"#2E7BC4"},
+ {id:"must",n:"الجامعة المستنصرية",s:"المستنصرية",c:"#8A5FC9"},
+ {id:"basrah",n:"جامعة البصرة",s:"البصرة",c:"#1F9A77"},
+ {id:"kufa",n:"جامعة الكوفة",s:"الكوفة",c:"#C7524A"},
+ {id:"ntu",n:"الجامعة التقنية الشمالية",s:"التقنية الشمالية",c:"#D2619F"},
+ {id:"mtu",n:"الجامعة التقنية الوسطى",s:"التقنية الوسطى",c:"#3E9FB3"},
+ {id:"atu",n:"جامعة الفرات الأوسط التقنية",s:"الفرات الأوسط",c:"#8C9A32"}
+];
+var AXES=[
+ {id:"nat",n:"التصنيف الوطني",w:25},
+ {id:"glob",n:"التصنيفات العالمية",w:25},
+ {id:"res",n:"البحث والابتكار",w:25},
+ {id:"edu",n:"التعليم",w:10},
+ {id:"sus",n:"الاستدامة وخدمة المجتمع",w:15}
+];
+var MOHE="جهاز الإشراف والتقويم العلمي، وزارة التعليم العالي";
+var THE="صفحات الجامعات في موقع التايمز للتعليم العالي";
+var SIR="موقع سيماجو لتصنيف المؤسسات";
+var IND=[
+ {id:"iru25",ax:"nat",n:"درجة التصنيف العراقي للجامعات",hi:true,sc:true,src:MOHE,year:"2025",
+  v:{mosul:"51.31",baghdad:"60.08",must:"45.10",basrah:"52.17",kufa:"39.75",ntu:"43.14",mtu:"44.40",atu:"35.17"}},
+ {id:"iru25r",ax:"nat",n:"المرتبة بين الجامعات الحكومية",hi:false,sc:false,src:MOHE,year:"2025",
+  v:{mosul:"5",baghdad:"1",must:"9",basrah:"3",kufa:"13",ntu:"11",mtu:"10",atu:"16"}},
+ {id:"iru24",ax:"nat",n:"درجة التصنيف العراقي في النسخة السابقة",hi:true,sc:false,src:MOHE,year:"2024",
+  v:{mosul:"43.18",baghdad:"48.65",must:"51.04",basrah:"44.20",kufa:"47.93",ntu:"39.35",mtu:"39.95",atu:"38.35"}},
+ {id:"the",ax:"glob",n:"تصنيف التايمز العالمي",hi:false,sc:true,src:THE,year:"2027",
+  v:{mosul:"2001+",baghdad:"1601–1800",must:"1801–2000",basrah:"2001+",kufa:"1801–2000",ntu:"2001+",mtu:"2001+",atu:"2001+"}},
+ {id:"qs",ax:"glob",n:"تصنيف كيو إس العالمي",hi:false,sc:true,src:"صفحات الجامعات في موقع كيو إس",year:"2027",
+  note:"الموصل والبصرة ظهرتا في نسخة 2026 بنطاق 1201–1400 ثم غابتا عن نسخة 2027.",
+  v:{mosul:"غير مدرجة",baghdad:"801–850",must:"1001–1200",basrah:"غير مدرجة",kufa:"1401+",ntu:"غير مدرجة",mtu:"غير مدرجة",atu:"غير مدرجة"}},
+ {id:"sir",ax:"glob",n:"تصنيف سيماجو للمؤسسات، المرتبة العالمية",hi:false,sc:true,src:SIR,year:"2026",
+  v:{baghdad:"3279",must:"5298",mosul:"6964",basrah:"7077",kufa:"8508",atu:"9174",ntu:"9319",mtu:"9663"}},
+ {id:"sirr",ax:"res",n:"مرتبة البحث العلمي في سيماجو",hi:false,sc:true,src:SIR,year:"2026",
+  v:{baghdad:"1367",mosul:"3980",must:"4227",basrah:"5589",atu:"5657",kufa:"5673",mtu:"6813",ntu:"7144"}},
+ {id:"siri",ax:"res",n:"مرتبة الابتكار في سيماجو",hi:false,sc:true,src:SIR,year:"2026",
+  v:{ntu:"8283",mtu:"8593",baghdad:"8903",basrah:"8925",must:"9152",kufa:"9355",atu:"9498",mosul:"9686"}},
+ {id:"stud",ax:"edu",n:"عدد الطلبة",hi:true,sc:false,src:THE,year:"2027",
+  v:{baghdad:"68301",mosul:"58764",basrah:"53414",mtu:"37763",must:"34033",kufa:"33945",atu:"26757",ntu:"18476"}},
+ {id:"sps",ax:"edu",n:"طالب لكل تدريسي",hi:false,sc:true,src:THE,year:"2027",
+  v:{must:"9",baghdad:"9.5",kufa:"10.5",mosul:"11.6",ntu:"14.1",basrah:"15.9",mtu:"20.2",atu:"26.8"}},
+ {id:"founded",ax:"edu",n:"سنة التأسيس",hi:false,sc:false,src:"مواقع الجامعات والمصادر العامة",year:"—",plain:true,
+  v:{mosul:"1967",baghdad:"1957",must:"1963",basrah:"1964",kufa:"1987",ntu:"2014",mtu:"2014",atu:"2014"}},
+ {id:"impact",ax:"sus",n:"تصنيف التايمز لأثر الاستدامة",hi:false,sc:true,src:THE,year:"2026",
+  note:"البصرة والتقنية الشمالية ظهرتا في نسخة 2025 فقط: البصرة 601–800، والتقنية الشمالية 1001–1500.",
+  v:{mosul:"601–800",must:"601–800",kufa:"801–1000",atu:"801–1000",mtu:"1001–1500",baghdad:"غير مدرجة",basrah:"غير مدرجة",ntu:"غير مدرجة"}},
+ {id:"sirs",ax:"sus",n:"مرتبة الأثر المجتمعي في سيماجو",hi:false,sc:true,src:SIR,year:"2026",
+  v:{baghdad:"2403",must:"2721",basrah:"5297",mosul:"6471",kufa:"7766",ntu:"8659",atu:"8765",mtu:"9231"}}
+];
+var IX={};IND.forEach(function(i){IX[i.id]=i;});
+var UX={};UNIS.forEach(function(u){UX[u.id]=u;});
+var KEY="unicompare.v3";
+var S={ov:{},w:{},hl:["mosul"],cmp:["mosul","baghdad","basrah"],open:null,edit:"the"};
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&typeof p==="object"){
+  if(p.w)S.w=p.w;if(Array.isArray(p.hl))S.hl=p.hl;if(Array.isArray(p.cmp))S.cmp=p.cmp;}}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({ov:S.ov,w:S.w,hl:S.hl,cmp:S.cmp}));}catch(e){}}
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function fmt(v,dec){return Number(v).toLocaleString("en-US",{maximumFractionDigits:dec==null?2:dec});}
+function weight(a){return S.w[a.id]!=null?S.w[a.id]:a.w;}
+function meta(ind){var o=S.ov[ind.id];return{src:o?o.src:ind.src,year:o?o.year:ind.year,note:o?null:ind.note};}
+function rawText(ind,u){var o=S.ov[ind.id];var t=o?o.vals[u]:(ind.v||{})[u];return t==null?"":String(t).trim();}
+function parse(t,ind){
+  if(!t)return null;
+  if(/غير\s*مدرج/.test(t))return{t:"غير مدرجة",un:true};
+  var m=t.replace(/[,،]/g,"").match(/\d+(\.\d+)?/);if(!m)return null;
+  var v=parseFloat(m[0]);var simple=/^\d+(\.\d+)?$/.test(t.replace(/[,،]/g,""));
+  return{t:simple&&!ind.plain?fmt(v):t,v:v};
+}
+function val(ind,u){
+  if(ind.der){var a=val(IX[ind.der[0]],u),b=val(IX[ind.der[1]],u);
+    if(!a||!b||a.un||b.un||!b.v)return null;var q=a.v/b.v;return{t:fmt(q,ind.dec),v:q};}
+  return parse(rawText(ind,u),ind);
+}
+function count(ind){return UNIS.filter(function(u){return val(ind,u.id);}).length;}
+function norms(ind){
+  var out={},nums=[];
+  UNIS.forEach(function(u){var r=val(ind,u.id);if(r){out[u.id]=r;if(!r.un)nums.push(r.v);}});
+  if(!nums.length)return{};
+  var mn=Math.min.apply(null,nums),mx=Math.max.apply(null,nums),res={};
+  Object.keys(out).forEach(function(k){var r=out[k];
+    res[k]=r.un?0:(mx===mn?1:(ind.hi?(r.v-mn)/(mx-mn):(mx-r.v)/(mx-mn)));});
+  return res;
+}
+function scored(ind){return ind.sc&&count(ind)===8;}
+function axisScores(ax){
+  var acc={};
+  IND.filter(function(i){return i.ax===ax.id&&scored(i);}).forEach(function(i){
+    var n=norms(i);Object.keys(n).forEach(function(k){(acc[k]=acc[k]||[]).push(n[k]);});});
+  var out={};Object.keys(acc).forEach(function(k){out[k]=acc[k].reduce(function(a,b){return a+b;},0)/acc[k].length;});
+  return out;
+}
+function rankIn(ind,uid){
+  var n=norms(ind);if(n[uid]==null)return null;
+  var better=Object.keys(n).filter(function(k){return n[k]>n[uid]+1e-9;}).length;
+  return{pos:better+1,of:Object.keys(n).length};
+}
+var ORD=["","الأولى","الثانية","الثالثة","الرابعة","الخامسة","السادسة","السابعة","الثامنة"];
+
+/* ---------- شاشة الموقع ---------- */
+function chipsHTML(sel,lockMosul){
+  return UNIS.map(function(u){var on=sel.indexOf(u.id)>=0;
+    return '<button class="chip" data-u="'+u.id+'" aria-pressed="'+on+'" style="--c:'+u.c+'"'+
+      (lockMosul&&u.id==="mosul"?" disabled":"")+'><i></i>'+esc(u.s)+'</button>';}).join("");
+}
+function renderLead(){
+  var i25=IX.iru25,r=rankIn(i25,"mosul"),a=val(IX.iru25r,"mosul"),b=val(IX.iru24,"mosul"),c=val(i25,"mosul");
+  var h="";
+  if(r)h+="<strong>"+ORD[r.pos]+" بين الجامعات "+(r.of===8?"الثماني":r.of)+"</strong> في التصنيف العراقي للجامعات "+esc(meta(i25).year)+". ";
+  if(a&&b&&c)h+="درجتها ارتفعت من <span class='num'>"+b.t+"</span> إلى <span class='num'>"+c.t+"</span>، ومرتبتها بين الجامعات الحكومية <span class='num'>"+a.t+"</span>.";
+  $("lead").innerHTML=h||"أدخل البيانات لتظهر خلاصة الموقع هنا.";
+}
+function stripHTML(ind){
+  var n=norms(ind),m=meta(ind),rk=rankIn(ind,"mosul");
+  var pts=UNIS.filter(function(u){return n[u.id]!=null;}).map(function(u){return{u:u,p:n[u.id],r:val(ind,u.id)};})
+    .sort(function(a,b){return a.p-b.p;});
+  var last=-9,lane=0,k=0;
+  var dots=pts.map(function(d){
+    var hl=S.hl.indexOf(d.u.id)>=0;
+    if(d.p-last<0.035){lane=lane?0:1;}else{lane=0;}last=d.p;
+    var tag=hl?'<span class="tag'+((k++)%2?" dn":"")+'">'+esc(d.u.s)+" "+'<span class="num">'+esc(d.r.t)+"</span></span>":"";
+    return '<span class="dotp'+(hl?" hl":"")+(lane&&!hl?" l2":"")+'" style="left:'+(d.p*100).toFixed(1)+"%;--c:"+d.u.c+'" title="'+esc(d.u.n)+": "+esc(d.r.t)+'">'+tag+"</span>";
+  }).join("");
+  var open=S.open===ind.id,det="";
+  if(open){
+    det='<div class="detail">'+pts.slice().reverse().map(function(d){
+      return '<div class="rowbar'+(d.u.id==="mosul"?" me":"")+'"><span>'+esc(d.u.s)+'</span><span class="bar"><span style="width:'+Math.max(3,d.p*100).toFixed(0)+'%"></span></span><span class="num">'+esc(d.r.t)+"</span></div>";
+    }).join("")+
+    '<p class="src">المصدر: '+esc(m.src||"غير محدد")+"، "+esc(m.year||"")+"."+(m.note?' <span class="flag">'+esc(m.note)+"</span>":"")+"</p></div>";
+  }
+  return '<article class="strip"><button class="strip-btn" data-ind="'+ind.id+'" aria-expanded="'+open+'">'+
+    '<span class="strip-top"><span class="strip-name">'+esc(ind.n)+(m.year&&m.year!=="—"?' <span class="num">'+esc(m.year)+"</span>":"")+"</span>"+
+    '<span class="strip-rank">'+(rk?"الموصل <b>"+rk.pos+"</b> من "+rk.of:"الموصل بلا قيمة")+"</span></span></button>"+
+    '<div class="track-wrap"><div class="track">'+dots+"</div></div>"+
+    '<div class="ends"><span>الأدنى</span><span>الأفضل</span></div>'+det+"</article>";
+}
+function renderPos(){
+  renderLead();
+  $("hl-chips").innerHTML=chipsHTML(S.hl,true);
+  var h="";
+  AXES.forEach(function(ax){
+    var list=IND.filter(function(i){return i.ax===ax.id&&!i.plain&&count(i)>=2;});
+    if(list.length)h+='<h2 class="axis-h">'+esc(ax.n)+"</h2>"+list.map(stripHTML).join("");
+  });
+  $("strips").innerHTML=h;
+}
+
+/* ---------- وجهاً لوجه ---------- */
+function renderCmp(){
+  $("cmp-chips").innerHTML=chipsHTML(S.cmp,false);
+  var sel=S.cmp.map(function(id){return UX[id];});
+  var h="<thead><tr><th>المؤشر</th>"+sel.map(function(u){return '<th style="--c:'+u.c+'"><i></i>'+esc(u.s)+"</th>";}).join("")+"</tr></thead><tbody>";
+  AXES.forEach(function(ax){
+    var list=IND.filter(function(i){return i.ax===ax.id&&count(i)>=1;});
+    if(!list.length)return;
+    h+='<tr class="ax"><th colspan="'+(sel.length+1)+'">'+esc(ax.n)+"</th></tr>";
+    list.forEach(function(i){
+      var n=norms(i),best=-1;
+      if(!i.plain)sel.forEach(function(u){if(n[u.id]!=null&&n[u.id]>best)best=n[u.id];});
+      var have=sel.filter(function(u){return n[u.id]!=null;}).length;
+      var y=meta(i).year;
+      h+="<tr><th>"+esc(i.n)+(y&&y!=="—"?' <span class="num">'+esc(y)+"</span>":"")+"</th>"+sel.map(function(u){
+        var r=val(i,u.id);if(!r)return '<td class="na">لم يُدخل</td>';
+        var b=!i.plain&&have>1&&Math.abs(n[u.id]-best)<1e-9;
+        return "<td"+(b?' class="best"':"")+'><span class="num">'+esc(r.t)+"</span></td>";}).join("")+"</tr>";
+    });
+  });
+  $("cmp-table").innerHTML=h+"</tbody>";
+  renderSlope();
+}
+function renderSlope(){
+  var a=IX.iru24,b=IX.iru25,rows=[];
+  UNIS.forEach(function(u){var x=val(a,u.id),y=val(b,u.id);if(x&&y&&!x.un&&!y.un)rows.push({u:u,a:x.v,b:y.v});});
+  if(rows.length<2){$("slope").innerHTML='<p class="sec-note">أدخل درجات النسختين ليظهر الرسم.</p>';return;}
+  var all=[];rows.forEach(function(r){all.push(r.a,r.b);});
+  var mn=Math.min.apply(null,all)-1,mx=Math.max.apply(null,all)+1,W=360,H=330,T=36,B=18,xa=318,xb=176;
+  function y(v){return T+(mx-v)/(mx-mn)*(H-T-B);}
+  rows.sort(function(p,q){return q.b-p.b;});
+  var prev=-99;rows.forEach(function(r){var ly=y(r.b);if(ly-prev<17)ly=prev+17;r.ly=ly;prev=ly;});
+  var s='<svg viewBox="0 0 '+W+" "+(Math.max(H,prev+14))+'" role="img" aria-label="تغير درجة التصنيف العراقي بين النسختين" style="width:100%;height:auto;display:block">';
+  s+='<text x="'+xa+'" y="18" text-anchor="middle" font-size="12" font-weight="600">'+esc(meta(a).year)+"</text>";
+  s+='<text x="'+xb+'" y="18" text-anchor="middle" font-size="12" font-weight="600">'+esc(meta(b).year)+"</text>";
+  s+='<line x1="'+xa+'" x2="'+xa+'" y1="'+T+'" y2="'+(H-B)+'" stroke="var(--line)"/><line x1="'+xb+'" x2="'+xb+'" y1="'+T+'" y2="'+(H-B)+'" stroke="var(--line)"/>';
+  rows.slice().sort(function(p,q){return (S.cmp.indexOf(p.u.id)>=0)-(S.cmp.indexOf(q.u.id)>=0);}).forEach(function(r){
+    var on=S.cmp.indexOf(r.u.id)>=0,col=on?r.u.c:"var(--dot)";
+    s+='<line x1="'+xa+'" y1="'+y(r.a).toFixed(1)+'" x2="'+xb+'" y2="'+y(r.b).toFixed(1)+'" stroke="'+col+'" stroke-width="'+(on?3:1.2)+'" stroke-linecap="round"/>';
+    s+='<circle cx="'+xa+'" cy="'+y(r.a).toFixed(1)+'" r="'+(on?4.5:3)+'" fill="'+col+'"/><circle cx="'+xb+'" cy="'+y(r.b).toFixed(1)+'" r="'+(on?4.5:3)+'" fill="'+col+'"/>';
+    if(on)s+='<text x="'+(xa+9)+'" y="'+(y(r.a)+4).toFixed(1)+'" font-size="11" text-anchor="start">'+fmt(r.a,1)+"</text>";
+    s+='<line x1="'+(xb-5)+'" y1="'+y(r.b).toFixed(1)+'" x2="'+(xb-10)+'" y2="'+r.ly.toFixed(1)+'" stroke="var(--line)"/>';
+    s+='<text x="'+(xb-13)+'" y="'+(r.ly+4).toFixed(1)+'" font-size="12" direction="rtl" text-anchor="start" font-weight="'+(on?600:400)+'"'+(on?"":' style="fill:var(--muted)"')+">"+esc(r.u.s)+" "+fmt(r.b,1)+"</text>";
+  });
+  $("slope").innerHTML=s+"</svg>";
+}
+
+/* ---------- الأوزان ---------- */
+function renderW(){
+  var sc={},live=[];
+  AXES.forEach(function(ax){sc[ax.id]=axisScores(ax);if(Object.keys(sc[ax.id]).length)live.push(ax);});
+  var res=UNIS.map(function(u){var sw=0,s=0,n=0;
+    live.forEach(function(ax){var v=sc[ax.id][u.id];if(v!=null){var w=weight(ax);s+=w*v;sw+=w;n++;}});
+    return{u:u,score:sw?s/sw*100:null,n:n};}).filter(function(r){return r.score!=null;})
+    .sort(function(p,q){return q.score-p.score;});
+  $("cover-note").innerHTML="الترتيب محسوب من "+live.length+" محاور: «"+live.map(function(a){return esc(a.n);}).join("»، «")+"». كل المؤشرات متوفرة للجامعات الثماني.";
+  $("rank").innerHTML=res.map(function(r){
+    return '<li class="'+(r.u.id==="mosul"?"me":"")+'"><span>'+esc(r.u.n)+'</span><span class="num">'+fmt(r.score,1)+
+      '</span><span class="bar"><span style="width:'+r.score.toFixed(0)+'%"></span></span></li>';}).join("");
+  var tot=live.reduce(function(a,x){return a+weight(x);},0);
+  $("weights").innerHTML=live.map(function(ax){
+    var on=live.indexOf(ax)>=0,w=weight(ax),pc=on&&tot?Math.round(w/tot*100):0;
+    return '<div class="wrow'+(on?"":" empty")+'"><label for="w-'+ax.id+'">'+esc(ax.n)+'</label><output id="o-'+ax.id+'">'+(on?pc+"٪":"—")+
+      '</output><input type="range" id="w-'+ax.id+'" data-ax="'+ax.id+'" min="0" max="40" step="5" value="'+w+'"'+(on?"":" disabled")+">"+
+      (on?"":"<small>لا بيانات بعد في هذا المحور، فهو خارج الحساب.</small>")+"</div>";}).join("");
+}
+
+/* ---------- البيانات ---------- */
+function renderData(){
+  $("srclist").innerHTML=IND.map(function(i){var mm=meta(i);
+    return "<li>"+esc(i.n)+"<small>"+esc(mm.src||"")+(mm.year&&mm.year!=="—"?"، "+esc(mm.year):"")+"</small>"+(mm.note?"<small>"+esc(mm.note)+"</small>":"")+"</li>";}).join("");
+  $("stamp").textContent="آخر تحديث للبيانات: تشرين الأول 2026.";
+}
+function toast(t){var el=$("toast");el.textContent=t;el.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(function(){el.classList.remove("on");},2200);}
+function renderAll(){renderPos();renderCmp();renderW();renderData();}
+function go(tab){
+  ["pos","cmp","w","data"].forEach(function(t){$("s-"+t).classList.toggle("on",t===tab);});
+  document.querySelectorAll(".tabs button").forEach(function(b){b.setAttribute("aria-selected",b.dataset.tab===tab);});
+  window.scrollTo(0,0);
+}
+
+/* ---------- الأحداث ---------- */
+document.querySelector(".tabs").addEventListener("click",function(e){var b=e.target.closest("button");if(b)go(b.dataset.tab);});
+$("hl-chips").addEventListener("click",function(e){var b=e.target.closest(".chip");if(!b||b.disabled)return;
+  var i=S.hl.indexOf(b.dataset.u);if(i>=0)S.hl.splice(i,1);else S.hl.push(b.dataset.u);save();renderPos();});
+$("strips").addEventListener("click",function(e){var b=e.target.closest(".strip-btn");if(!b)return;
+  S.open=S.open===b.dataset.ind?null:b.dataset.ind;renderPos();});
+$("cmp-chips").addEventListener("click",function(e){var b=e.target.closest(".chip");if(!b)return;
+  var i=S.cmp.indexOf(b.dataset.u);
+  if(i>=0){if(S.cmp.length<=2){toast("أبقِ جامعتين على الأقل");return;}S.cmp.splice(i,1);}
+  else{if(S.cmp.length>=4){toast("الحد الأقصى أربع جامعات");return;}S.cmp.push(b.dataset.u);}
+  save();renderCmp();});
+$("weights").addEventListener("input",function(e){var t=e.target;if(!t.dataset.ax)return;
+  S.w[t.dataset.ax]=Number(t.value);save();var id=t.id;renderW();var el=$(id);if(el)el.focus();});
+$("w-reset").addEventListener("click",function(){S.w={};save();renderW();toast("أُعيدت الأوزان الافتراضية");});
+
+S.hl=S.hl.filter(function(x){return UX[x];});if(S.hl.indexOf("mosul")<0)S.hl.unshift("mosul");
+S.cmp=S.cmp.filter(function(x){return UX[x];});if(S.cmp.length<2)S.cmp=["mosul","baghdad"];
+
+renderAll();
+})();
+</script>
+</body>
+</html>
