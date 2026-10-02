@@ -161,7 +161,7 @@ textarea{min-height:110px;direction:ltr;font-size:.8rem;font-family:ui-monospace
       <h1>أين تقف جامعة الموصل؟</h1>
       <p id="lead"></p>
     </header>
-    <p class="sec-note">مقارنة مع سبع جامعات عراقية. كل خط يمثل مؤشراً، وكل نقطة جامعة. اضغط اسم جامعة لتلوين نقطتها، واضغط المؤشر لعرض القيم كاملة.</p>
+    <p class="sec-note">مقارنة مع تسع عشرة جامعة عراقية. كل خط يمثل مؤشراً، وكل نقطة جامعة. اضغط اسم جامعة لتلوين نقطتها، واضغط المؤشر لعرض القيم كاملة.</p>
     <div class="chips" id="hl-chips"></div>
     <div id="strips"></div>
   </section>
@@ -193,11 +193,11 @@ textarea{min-height:110px;direction:ltr;font-size:.8rem;font-family:ui-monospace
   <section class="screen" id="s-data" role="tabpanel">
     <header class="mast">
       <h1>المصادر وطريقة الحساب</h1>
-      <p>كل مؤشر في هذا التطبيق متوفر للجامعات الثماني كلها، ومأخوذ من مصدره المعلن.</p>
+      <p>كل مؤشر في هذا التطبيق مأخوذ من مصدره المعلن. جامعات نينوى والحمدانية وتلعفر بلا بيانات تعليم في موقع التايمز.</p>
     </header>
     <ul class="srclist" id="srclist"></ul>
     <h2 class="sec-title">طريقة الحساب</h2>
-    <p class="sec-note">كل مؤشر يُحوَّل إلى مقياس من صفر إلى مئة بين الجامعات الثماني: الأفضل مئة والأدنى صفر. درجة المحور هي متوسط مؤشراته، والدرجة النهائية متوسط المحاور بحسب أوزانها. «غير مدرجة» في تصنيف عالمي تُحسب صفراً في ذلك المؤشر. عدد الطلبة وسنة التأسيس للعرض فقط ولا يدخلان في الترتيب.</p>
+    <p class="sec-note">كل مؤشر يُحوَّل إلى مقياس من صفر إلى مئة بين الجامعات العشرين: الأفضل مئة والأدنى صفر. درجة المحور هي متوسط مؤشراته، والدرجة النهائية متوسط المحاور بحسب أوزانها. «غير مدرجة» في تصنيف عالمي تُحسب صفراً في ذلك المؤشر. الجامعة التي لا تتوفر لها بيانات محور لا يُحسب لها ذلك المحور، ويظهر ذلك بجانب اسمها. عدد الطلبة وسنة التأسيس للعرض فقط ولا يدخلان في الترتيب.</p>
     <p class="sec-note" id="stamp"></p>
   </section>
 </div>
@@ -221,7 +221,19 @@ var UNIS=[
  {id:"kufa",n:"جامعة الكوفة",s:"الكوفة",c:"#C7524A"},
  {id:"ntu",n:"الجامعة التقنية الشمالية",s:"التقنية الشمالية",c:"#D2619F"},
  {id:"mtu",n:"الجامعة التقنية الوسطى",s:"التقنية الوسطى",c:"#3E9FB3"},
- {id:"atu",n:"جامعة الفرات الأوسط التقنية",s:"الفرات الأوسط",c:"#8C9A32"}
+ {id:"atu",n:"جامعة الفرات الأوسط التقنية",s:"الفرات الأوسط",c:"#8C9A32"},
+ {id:"tech",n:"الجامعة التكنولوجية",s:"التكنولوجية",c:"#E0703A"},
+ {id:"babylon",n:"جامعة بابل",s:"بابل",c:"#5A6BD8"},
+ {id:"anbar",n:"جامعة الأنبار",s:"الأنبار",c:"#B5942A"},
+ {id:"tikrit",n:"جامعة تكريت",s:"تكريت",c:"#2FA36B"},
+ {id:"kirkuk",n:"جامعة كركوك",s:"كركوك",c:"#A65FA8"},
+ {id:"diyala",n:"جامعة ديالى",s:"ديالى",c:"#D0504F"},
+ {id:"kerbala",n:"جامعة كربلاء",s:"كربلاء",c:"#3C8FD0"},
+ {id:"misan",n:"جامعة ميسان",s:"ميسان",c:"#6F9A3A"},
+ {id:"qadis",n:"جامعة القادسية",s:"القادسية",c:"#C46A8E"},
+ {id:"ninevah",n:"جامعة نينوى",s:"نينوى",c:"#4FA89A"},
+ {id:"hamdaniya",n:"جامعة الحمدانية",s:"الحمدانية",c:"#B9763F"},
+ {id:"telafer",n:"جامعة تلعفر",s:"تلعفر",c:"#7C7FD6"}
 ];
 var AXES=[
  {id:"nat",n:"التصنيف الوطني",w:25},
@@ -235,37 +247,37 @@ var THE="صفحات الجامعات في موقع التايمز للتعليم
 var SIR="موقع سيماجو لتصنيف المؤسسات";
 var IND=[
  {id:"iru25",ax:"nat",n:"درجة التصنيف العراقي للجامعات",hi:true,sc:true,src:MOHE,year:"2025",
-  v:{mosul:"51.31",baghdad:"60.08",must:"45.10",basrah:"52.17",kufa:"39.75",ntu:"43.14",mtu:"44.40",atu:"35.17"}},
+  v:{mosul:"51.31",baghdad:"60.08",must:"45.10",basrah:"52.17",kufa:"39.75",ntu:"43.14",mtu:"44.40",atu:"35.17",tech:"54.00",anbar:"52.05",diyala:"49.63",babylon:"46.88",kerbala:"40.16",qadis:"37.25",tikrit:"33.17",kirkuk:"26.86",misan:"23.60",ninevah:"24.02",telafer:"13.26",hamdaniya:"11.05"}},
  {id:"iru25r",ax:"nat",n:"المرتبة بين الجامعات الحكومية",hi:false,sc:false,src:MOHE,year:"2025",
-  v:{mosul:"5",baghdad:"1",must:"9",basrah:"3",kufa:"13",ntu:"11",mtu:"10",atu:"16"}},
+  v:{mosul:"5",baghdad:"1",must:"9",basrah:"3",kufa:"13",ntu:"11",mtu:"10",atu:"16",tech:"2",anbar:"4",diyala:"6",babylon:"7",kerbala:"12",qadis:"15",tikrit:"17",kirkuk:"25",misan:"29",ninevah:"27",telafer:"34",hamdaniya:"37"}},
  {id:"iru24",ax:"nat",n:"درجة التصنيف العراقي في النسخة السابقة",hi:true,sc:false,src:MOHE,year:"2024",
-  v:{mosul:"43.18",baghdad:"48.65",must:"51.04",basrah:"44.20",kufa:"47.93",ntu:"39.35",mtu:"39.95",atu:"38.35"}},
+  v:{mosul:"43.18",baghdad:"48.65",must:"51.04",basrah:"44.20",kufa:"47.93",ntu:"39.35",mtu:"39.95",atu:"38.35",tech:"61.61",anbar:"54.52",kerbala:"47.79",babylon:"46.23",diyala:"44.53",qadis:"43.11",tikrit:"41.68",kirkuk:"33.49",misan:"29.37",ninevah:"30.29",telafer:"19.07",hamdaniya:"19.00"}},
  {id:"the",ax:"glob",n:"تصنيف التايمز العالمي",hi:false,sc:true,src:THE,year:"2027",
-  v:{mosul:"2001+",baghdad:"1601–1800",must:"1801–2000",basrah:"2001+",kufa:"1801–2000",ntu:"2001+",mtu:"2001+",atu:"2001+"}},
+  v:{mosul:"2001+",baghdad:"1601–1800",must:"1801–2000",basrah:"2001+",kufa:"1801–2000",ntu:"2001+",mtu:"2001+",atu:"2001+",tech:"1001–1200",anbar:"1201–1400",babylon:"1801–2000",qadis:"1801–2000",tikrit:"2001+",kirkuk:"2001+",diyala:"2001+",kerbala:"2001+",misan:"2001+",ninevah:"غير مدرجة",telafer:"غير مدرجة",hamdaniya:"غير مدرجة"}},
  {id:"qs",ax:"glob",n:"تصنيف كيو إس العالمي",hi:false,sc:true,src:"صفحات الجامعات في موقع كيو إس",year:"2027",
-  note:"الموصل والبصرة ظهرتا في نسخة 2026 بنطاق 1201–1400 ثم غابتا عن نسخة 2027.",
-  v:{mosul:"غير مدرجة",baghdad:"801–850",must:"1001–1200",basrah:"غير مدرجة",kufa:"1401+",ntu:"غير مدرجة",mtu:"غير مدرجة",atu:"غير مدرجة"}},
+  note:"الموصل والبصرة وبابل ظهرت في نسخة 2026 بنطاق 1201–1400 ثم غابت عن نسخة 2027.",
+  v:{mosul:"غير مدرجة",baghdad:"801–850",must:"1001–1200",basrah:"غير مدرجة",kufa:"1401+",ntu:"غير مدرجة",mtu:"غير مدرجة",atu:"غير مدرجة",anbar:"1201–1400",kerbala:"1401+",babylon:"غير مدرجة",tech:"غير مدرجة",tikrit:"غير مدرجة",kirkuk:"غير مدرجة",diyala:"غير مدرجة",misan:"غير مدرجة",qadis:"غير مدرجة",ninevah:"غير مدرجة",telafer:"غير مدرجة",hamdaniya:"غير مدرجة"}},
  {id:"sir",ax:"glob",n:"تصنيف سيماجو للمؤسسات، المرتبة العالمية",hi:false,sc:true,src:SIR,year:"2026",
-  v:{baghdad:"3279",must:"5298",mosul:"6964",basrah:"7077",kufa:"8508",atu:"9174",ntu:"9319",mtu:"9663"}},
+  v:{baghdad:"3279",must:"5298",mosul:"6964",basrah:"7077",kufa:"8508",atu:"9174",ntu:"9319",mtu:"9663",tech:"5151",babylon:"6143",diyala:"6242",anbar:"7125",qadis:"8559",tikrit:"8811",misan:"8920",kerbala:"9216",kirkuk:"10042",ninevah:"9319",telafer:"غير مدرجة",hamdaniya:"غير مدرجة"}},
  {id:"sirr",ax:"res",n:"مرتبة البحث العلمي في سيماجو",hi:false,sc:true,src:SIR,year:"2026",
-  v:{baghdad:"1367",mosul:"3980",must:"4227",basrah:"5589",atu:"5657",kufa:"5673",mtu:"6813",ntu:"7144"}},
+  v:{baghdad:"1367",mosul:"3980",must:"4227",basrah:"5589",atu:"5657",kufa:"5673",mtu:"6813",ntu:"7144",tech:"2656",anbar:"3822",babylon:"4269",diyala:"4929",qadis:"5267",tikrit:"5635",kerbala:"7168",misan:"7172",kirkuk:"7347",ninevah:"8268",telafer:"غير مدرجة",hamdaniya:"غير مدرجة"}},
  {id:"siri",ax:"res",n:"مرتبة الابتكار في سيماجو",hi:false,sc:true,src:SIR,year:"2026",
-  v:{ntu:"8283",mtu:"8593",baghdad:"8903",basrah:"8925",must:"9152",kufa:"9355",atu:"9498",mosul:"9686"}},
+  v:{ntu:"8283",mtu:"8593",baghdad:"8903",basrah:"8925",must:"9152",kufa:"9355",atu:"9498",mosul:"9686",misan:"7354",tech:"7596",babylon:"8357",qadis:"9090",anbar:"9266",tikrit:"9514",kerbala:"9613",diyala:"9665",kirkuk:"10249",ninevah:"6933",telafer:"غير مدرجة",hamdaniya:"غير مدرجة"}},
  {id:"stud",ax:"edu",n:"عدد الطلبة",hi:true,sc:false,src:THE,year:"2027",
-  v:{baghdad:"68301",mosul:"58764",basrah:"53414",mtu:"37763",must:"34033",kufa:"33945",atu:"26757",ntu:"18476"}},
+  v:{baghdad:"68301",mosul:"58764",basrah:"53414",mtu:"37763",must:"34033",kufa:"33945",atu:"26757",ntu:"18476",diyala:"37534",tikrit:"36261",babylon:"28982",qadis:"28370",anbar:"27823",kerbala:"25431",kirkuk:"23267",misan:"18094",tech:"14634"}},
  {id:"sps",ax:"edu",n:"طالب لكل تدريسي",hi:false,sc:true,src:THE,year:"2027",
-  v:{must:"9",baghdad:"9.5",kufa:"10.5",mosul:"11.6",ntu:"14.1",basrah:"15.9",mtu:"20.2",atu:"26.8"}},
+  v:{must:"9",baghdad:"9.5",kufa:"10.5",mosul:"11.6",ntu:"14.1",basrah:"15.9",mtu:"20.2",atu:"26.8",tech:"7.4",babylon:"10.9",kerbala:"10.9",anbar:"11",tikrit:"11.5",kirkuk:"13.7",qadis:"14.4",misan:"15.4",diyala:"16.7"}},
  {id:"founded",ax:"edu",n:"سنة التأسيس",hi:false,sc:false,src:"مواقع الجامعات والمصادر العامة",year:"—",plain:true,
-  v:{mosul:"1967",baghdad:"1957",must:"1963",basrah:"1964",kufa:"1987",ntu:"2014",mtu:"2014",atu:"2014"}},
+  v:{mosul:"1967",baghdad:"1957",must:"1963",basrah:"1964",kufa:"1987",ntu:"2014",mtu:"2014",atu:"2014",tech:"1975",anbar:"1987",tikrit:"1987",qadis:"1987",babylon:"1991",diyala:"1999",kerbala:"2002",kirkuk:"2003",misan:"2007",ninevah:"2014",telafer:"2014",hamdaniya:"2014"}},
  {id:"impact",ax:"sus",n:"تصنيف التايمز لأثر الاستدامة",hi:false,sc:true,src:THE,year:"2026",
   note:"البصرة والتقنية الشمالية ظهرتا في نسخة 2025 فقط: البصرة 601–800، والتقنية الشمالية 1001–1500.",
-  v:{mosul:"601–800",must:"601–800",kufa:"801–1000",atu:"801–1000",mtu:"1001–1500",baghdad:"غير مدرجة",basrah:"غير مدرجة",ntu:"غير مدرجة"}},
+  v:{mosul:"601–800",must:"601–800",kufa:"801–1000",atu:"801–1000",mtu:"1001–1500",baghdad:"غير مدرجة",basrah:"غير مدرجة",ntu:"غير مدرجة",anbar:"601–800",qadis:"801–1000",tech:"1001–1500",tikrit:"1001–1500",kirkuk:"1001–1500",kerbala:"1001–1500",babylon:"غير مدرجة",diyala:"غير مدرجة",misan:"غير مدرجة",ninevah:"غير مدرجة",telafer:"غير مدرجة",hamdaniya:"غير مدرجة"}},
  {id:"sirs",ax:"sus",n:"مرتبة الأثر المجتمعي في سيماجو",hi:false,sc:true,src:SIR,year:"2026",
-  v:{baghdad:"2403",must:"2721",basrah:"5297",mosul:"6471",kufa:"7766",ntu:"8659",atu:"8765",mtu:"9231"}}
+  v:{baghdad:"2403",must:"2721",basrah:"5297",mosul:"6471",kufa:"7766",ntu:"8659",atu:"8765",mtu:"9231",diyala:"3339",babylon:"5401",tech:"6390",anbar:"7356",kerbala:"7610",tikrit:"8217",qadis:"8380",misan:"8574",kirkuk:"8865",ninevah:"8627",telafer:"غير مدرجة",hamdaniya:"غير مدرجة"}}
 ];
 var IX={};IND.forEach(function(i){IX[i.id]=i;});
 var UX={};UNIS.forEach(function(u){UX[u.id]=u;});
-var KEY="unicompare.v3";
+var KEY="unicompare.v5";
 var S={ov:{},w:{},hl:["mosul"],cmp:["mosul","baghdad","basrah"],open:null,edit:"the"};
 try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&typeof p==="object"){
   if(p.w)S.w=p.w;if(Array.isArray(p.hl))S.hl=p.hl;if(Array.isArray(p.cmp))S.cmp=p.cmp;}}}catch(e){}
@@ -298,7 +310,7 @@ function norms(ind){
     res[k]=r.un?0:(mx===mn?1:(ind.hi?(r.v-mn)/(mx-mn):(mx-r.v)/(mx-mn)));});
   return res;
 }
-function scored(ind){return ind.sc&&count(ind)===8;}
+function scored(ind){return ind.sc&&count(ind)>=4;}
 function axisScores(ax){
   var acc={};
   IND.filter(function(i){return i.ax===ax.id&&scored(i);}).forEach(function(i){
@@ -322,7 +334,7 @@ function chipsHTML(sel,lockMosul){
 function renderLead(){
   var i25=IX.iru25,r=rankIn(i25,"mosul"),a=val(IX.iru25r,"mosul"),b=val(IX.iru24,"mosul"),c=val(i25,"mosul");
   var h="";
-  if(r)h+="<strong>"+ORD[r.pos]+" بين الجامعات "+(r.of===8?"الثماني":r.of)+"</strong> في التصنيف العراقي للجامعات "+esc(meta(i25).year)+". ";
+  if(r)h+="<strong>"+"المرتبة "+r.pos+" من "+r.of+" جامعة</strong> في التصنيف العراقي للجامعات "+esc(meta(i25).year)+". ";
   if(a&&b&&c)h+="درجتها ارتفعت من <span class='num'>"+b.t+"</span> إلى <span class='num'>"+c.t+"</span>، ومرتبتها بين الجامعات الحكومية <span class='num'>"+a.t+"</span>.";
   $("lead").innerHTML=h||"أدخل البيانات لتظهر خلاصة الموقع هنا.";
 }
@@ -346,7 +358,7 @@ function stripHTML(ind){
   }
   return '<article class="strip"><button class="strip-btn" data-ind="'+ind.id+'" aria-expanded="'+open+'">'+
     '<span class="strip-top"><span class="strip-name">'+esc(ind.n)+(m.year&&m.year!=="—"?' <span class="num">'+esc(m.year)+"</span>":"")+"</span>"+
-    '<span class="strip-rank">'+(rk?"الموصل <b>"+rk.pos+"</b> من "+rk.of:"الموصل بلا قيمة")+"</span></span></button>"+
+    '<span class="strip-rank">'+((val(ind,"mosul")||{}).un?"الموصل غير مدرجة":(rk?"الموصل <b>"+rk.pos+"</b> من "+rk.of:"الموصل بلا قيمة"))+"</span></span></button>"+
     '<div class="track-wrap"><div class="track">'+dots+"</div></div>"+
     '<div class="ends"><span>الأدنى</span><span>الأفضل</span></div>'+det+"</article>";
 }
@@ -376,7 +388,7 @@ function renderCmp(){
       var have=sel.filter(function(u){return n[u.id]!=null;}).length;
       var y=meta(i).year;
       h+="<tr><th>"+esc(i.n)+(y&&y!=="—"?' <span class="num">'+esc(y)+"</span>":"")+"</th>"+sel.map(function(u){
-        var r=val(i,u.id);if(!r)return '<td class="na">لم يُدخل</td>';
+        var r=val(i,u.id);if(!r)return '<td class="na">غير متوفر</td>';
         var b=!i.plain&&have>1&&Math.abs(n[u.id]-best)<1e-9;
         return "<td"+(b?' class="best"':"")+'><span class="num">'+esc(r.t)+"</span></td>";}).join("")+"</tr>";
     });
@@ -416,10 +428,10 @@ function renderW(){
     live.forEach(function(ax){var v=sc[ax.id][u.id];if(v!=null){var w=weight(ax);s+=w*v;sw+=w;n++;}});
     return{u:u,score:sw?s/sw*100:null,n:n};}).filter(function(r){return r.score!=null;})
     .sort(function(p,q){return q.score-p.score;});
-  $("cover-note").innerHTML="الترتيب محسوب من "+live.length+" محاور: «"+live.map(function(a){return esc(a.n);}).join("»، «")+"». كل المؤشرات متوفرة للجامعات الثماني.";
+  $("cover-note").innerHTML="الترتيب محسوب من "+live.length+" محاور: «"+live.map(function(a){return esc(a.n);}).join("»، «")+"».";
   $("rank").innerHTML=res.map(function(r){
     return '<li class="'+(r.u.id==="mosul"?"me":"")+'"><span>'+esc(r.u.n)+'</span><span class="num">'+fmt(r.score,1)+
-      '</span><span class="bar"><span style="width:'+r.score.toFixed(0)+'%"></span></span></li>';}).join("");
+      '</span><span class="bar"><span style="width:'+r.score.toFixed(0)+'%"></span></span>'+(r.n<live.length?'<small>محسوبة من '+r.n+' محاور من '+live.length+'، لغياب بيانات التعليم</small>':'')+'</li>';}).join("");
   var tot=live.reduce(function(a,x){return a+weight(x);},0);
   $("weights").innerHTML=live.map(function(ax){
     var on=live.indexOf(ax)>=0,w=weight(ax),pc=on&&tot?Math.round(w/tot*100):0;
