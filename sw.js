@@ -1,5 +1,5 @@
 /* Service worker — يحفظ واجهة التطبيق للعمل بدون إنترنت */
-const VERSION = 'uom-v8';
+const VERSION = 'uom-v9';
 const SHELL = ['./', 'index.html', 'styles.css', 'guide.css', 'app.js', 'data.js', 'guide-data.js', 'guide.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
   'guide/hero.webp', 'guide/president.webp', 'guide/about.webp'];

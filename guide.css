@@ -257,3 +257,7 @@ html.is-dark .g-contact, :root[data-theme="dark"] .g-contact { background: #1631
   .reveal, .guide-card, .gc-bg, .gc-arrow, .chev { transition: none; }
   .gc-badge i, .tl-item.cur .tl-dot { animation: none; }
 }
+
+.g-digi { text-align: center; margin: 18px auto 0; padding: 12px 16px; border-top: 1px solid var(--vein); display: flex; flex-direction: column; gap: 2px; }
+.g-digi span { font-size: .74rem; letter-spacing: .08em; color: var(--muted); }
+.g-digi b { font-family: var(--font-display); font-size: 1.25rem; color: var(--brass); font-weight: 700; }

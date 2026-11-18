@@ -23,7 +23,7 @@ const UI = {
     progSearch: 'ابحث عن تخصص', progEmpty: 'لا يوجد تخصص مطابق', programsN: '{n} تخصصاً', browseColleges: 'تصفّح الكليات والمراكز', openProg: 'تخصصات',
     campusSub: 'أكثر من 2,300 هكتار من الأبنية والمرافق والمساحات الخضراء', maps: 'افتح في الخرائط',
     contactSub: 'موقع الجامعة الرسمي وعنوانها', website: 'الموقع الرسمي', address: 'شارع المجموعة الثقافية الرئيسي، الموصل – العراق',
-    shareText: 'الدليل التعريفي لجامعة الموصل 2026/2027', copied: 'تم نسخ الرابط', source: 'المصدر: دليل جامعة الموصل التعريفي 2026/2027', plus: '+',
+    shareText: 'الدليل التعريفي لجامعة الموصل 2026/2027', copied: 'تم نسخ الرابط', source: 'المصدر: دليل جامعة الموصل التعريفي 2026/2027', digi: 'رقمنة الدليل', digiBy: 'م. م. علي عبد الوهاب الصفار', plus: '+',
   },
   en: {
     title: 'University Prospectus', year: '2026/2027', uni: 'University of Mosul', back: 'Back', badge: 'New',
@@ -40,7 +40,7 @@ const UI = {
     progSearch: 'Search for a program', progEmpty: 'No matching program', programsN: '{n} programs', browseColleges: 'Browse colleges and centers', openProg: 'programs',
     campusSub: 'Over 2,300 hectares of buildings, facilities and green space', maps: 'Open in Maps',
     contactSub: 'The official website and address', website: 'Official website', address: 'Main Cultural Complex Street, Mosul – Iraq',
-    shareText: 'University of Mosul Prospectus 2026/2027', copied: 'Link copied', source: 'Source: University of Mosul Prospectus 2026/2027', plus: '+',
+    shareText: 'University of Mosul Prospectus 2026/2027', copied: 'Link copied', source: 'Source: University of Mosul Prospectus 2026/2027', digi: 'Guide digitization', digiBy: 'Asst. Lect. Ali Abdulwahab Al-Saffar', plus: '+',
   },
 };
 
@@ -266,6 +266,7 @@ function contact() {
         <a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">${ICON.pin}<span>${esc(u('address'))}</span><em>${esc(u('maps'))}</em></a>
       </div>
     </div>
+    <div class="g-digi"><span>${esc(u('digi'))}</span><b>${esc(u('digiBy'))}</b></div>
     <footer class="g-foot">${esc(u('source'))}</footer>`);
 }
 
