@@ -491,7 +491,7 @@ function renderAbout() {
 }
 
 function renderAll() { renderBanner(); renderHome(); renderActivities(); renderUnits(); }
-function renderEverything() { setFormatters(); renderStatic(); renderUnitPicker(); renderServices(); renderAbout(); renderAll(); if (visitsCache) loadVisits(); }
+function renderEverything() { setFormatters(); renderStatic(); renderUnitPicker(); renderServices(); renderAbout(); renderAll(); GUIDE_UI.render(state.lang); if (visitsCache) loadVisits(); }
 
 /* ---------- نافذة الجهة ---------- */
 function openUnit(id) {
@@ -660,9 +660,11 @@ async function loadVisits() {
 
 /* ---------- التنقل والأحداث ---------- */
 function go(tab) {
-  $$('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  const tabKey = tab === 'guide' ? 'home' : tab;
+  $$('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tabKey));
   $$('.view').forEach(v => v.classList.toggle('on', v.id === 'v-' + tab));
   closeSheet(); window.scrollTo({ top: 0 });
+  if (tab === 'guide') GUIDE_UI.onScroll();
   countEvent(tab);
   if (tab === 'about') loadVisits();
 }
@@ -707,7 +709,8 @@ function init() {
   applyTheme();
   if (!loadCache()) loadSnapshot();
   loadEnCache();
-  renderEverything(); bind(); initCounter();
+  renderEverything(); bind(); GUIDE_UI.bind(); initCounter();
+  window.addEventListener('guide-toast', e => toast(e.detail));
   refresh(false);
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 }

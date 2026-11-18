@@ -1,7 +1,8 @@
 /* Service worker — يحفظ واجهة التطبيق للعمل بدون إنترنت */
-const VERSION = 'uom-v7';
-const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'data.js', 'manifest.webmanifest',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
+const VERSION = 'uom-v8';
+const SHELL = ['./', 'index.html', 'styles.css', 'guide.css', 'app.js', 'data.js', 'guide-data.js', 'guide.js', 'manifest.webmanifest',
+  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
+  'guide/hero.webp', 'guide/president.webp', 'guide/about.webp'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

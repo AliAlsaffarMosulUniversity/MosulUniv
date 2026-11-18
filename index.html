@@ -17,6 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@700&family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="guide.css">
 </head>
 <body>
   <header class="top">
@@ -50,6 +51,7 @@
           <p class="hero-sub" data-i18n="heroSub">متابعة أسبوعية لنشاطات الكليات والمراكز، مباشرة من الموقع الرسمي للجامعة</p>
         </div>
       </div>
+      <div id="guide-card-slot"></div>
       <div class="home-grid">
         <div class="col-main">
           <div class="pulse">
@@ -89,6 +91,9 @@
         </div>
       </div>
     </section>
+
+    <!-- الدليل التعريفي -->
+    <section class="view" id="v-guide" aria-label="الدليل التعريفي"></section>
 
     <!-- النشاطات -->
     <section class="view" id="v-activities">
@@ -143,6 +148,8 @@
   </nav>
 
   <script src="data.js"></script>
+  <script src="guide-data.js"></script>
+  <script src="guide.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
