@@ -265,8 +265,8 @@ function contact() {
         <a href="https://uomosul.edu.iq/${lang === 'en' ? 'en/' : ''}" target="_blank" rel="noopener">${ICON.globe}<span>${esc(u('website'))}</span><em dir="ltr">uomosul.edu.iq</em></a>
         <a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">${ICON.pin}<span>${esc(u('address'))}</span><em>${esc(u('maps'))}</em></a>
       </div>
+      <div class="g-digi"><span>${esc(u('digi'))}</span><b>${esc(u('digiBy'))}</b></div>
     </div>
-    <div class="g-digi"><span>${esc(u('digi'))}</span><b>${esc(u('digiBy'))}</b></div>
     <footer class="g-foot">${esc(u('source'))}</footer>`);
 }
 
